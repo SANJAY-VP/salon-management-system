@@ -26,17 +26,18 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     role = Column(SQLEnum(UserRole), default=UserRole.CUSTOMER, nullable=False)
     
+    address = Column(Text, nullable=True)
+    city = Column(String(100), nullable=True, index=True)
+    state = Column(String(100), nullable=True)
+    pincode = Column(String(10), nullable=True)
     
-    # Points system
     points = Column(Integer, default=0)
     
-    # Metadata
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationships
     bookings = relationship("Booking", back_populates="user", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     barber_shops = relationship("BarberShop", back_populates="owner", cascade="all, delete-orphan")
