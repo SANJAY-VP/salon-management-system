@@ -1,6 +1,8 @@
 """
 Authentication Middleware for JWT token validation
 """
+from requests import Response
+
 from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -50,6 +52,8 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         if method == "OPTIONS":
             print(f"OPTIONS request to {path} - skipping authentication")
             return await call_next(request)
+            # return Response(status_code=200)
+        
         # if request.method == "OPTIONS":
         #     return JSONResponse(status_code=200, content={"ok": True})
         

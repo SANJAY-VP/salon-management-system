@@ -51,11 +51,17 @@ app = FastAPI(
 # Authentication Middleware
 app.add_middleware(AuthenticationMiddleware)
 
+allow_origins=[
+    "http://localhost:5173",
+    "https://salon-management-system-1-rpjn.onrender.com"
+]
+# allow_credentials=True
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=allow_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
