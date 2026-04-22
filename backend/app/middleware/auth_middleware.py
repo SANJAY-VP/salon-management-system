@@ -1,7 +1,6 @@
 """
 Authentication Middleware for JWT token validation
 """
-from requests import Response
 
 from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -50,10 +49,17 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         # CRITICAL: Always allow OPTIONS requests (CORS preflight)
         print(f"Received {method} request to {path}")
         if method == "OPTIONS":
-            print(f"OPTIONS request to {path} - skipping authentication")
-            return await call_next(request)
-            # return Response(status_code=200)
-        
+            from starlette.responses import Response
+            return Response(
+                status_code=200,
+                headers={
+                    "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                }
+            )
+                
         # if request.method == "OPTIONS":
         #     return JSONResponse(status_code=200, content={"ok": True})
         
