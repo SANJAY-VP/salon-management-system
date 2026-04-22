@@ -51,8 +51,8 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         print(f"Received {method} request to {path}")
         if method == "OPTIONS":
             print(f"OPTIONS request to {path} - skipping authentication")
-            return await call_next(request)
-            # return Response(status_code=200)
+            # return await call_next(request)
+            return Response(status_code=200)
         
         # if request.method == "OPTIONS":
         #     return JSONResponse(status_code=200, content={"ok": True})
