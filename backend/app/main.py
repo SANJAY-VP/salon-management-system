@@ -51,7 +51,7 @@ app = FastAPI(
 
 allow_origins=[
     "http://localhost:5173",
-    "https://salon-management-system-1-rpjn.onrender.com"
+    "https://salon-management-system-pehs.onrender.com"
 ]
 # allow_credentials=True
 
