@@ -48,8 +48,6 @@ app = FastAPI(
     debug=settings.DEBUG,
     generate_unique_id_function=_clean_operation_id,
 )
-# Authentication Middleware
-app.add_middleware(AuthenticationMiddleware)
 
 allow_origins=[
     "http://localhost:5173",
@@ -67,6 +65,8 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
+# Authentication Middleware
+app.add_middleware(AuthenticationMiddleware)
 
 
 
