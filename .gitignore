@@ -13,6 +13,8 @@ venv/
 # ===== Node / React (Vite) =====
 node_modules/
 .vite/
+frontend/dist/
+
 
 # ===== OS / Editor =====
 .vscode/
