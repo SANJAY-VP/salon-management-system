@@ -46,10 +46,10 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         method = request.method
         
         # CRITICAL: Always allow OPTIONS requests (CORS preflight)
-        # if method == "OPTIONS":
-        #     return await call_next(request)
-        if request.method == "OPTIONS":
-            return JSONResponse(status_code=200, content={"ok": True})
+        if method == "OPTIONS":
+            return await call_next(request)
+        # if request.method == "OPTIONS":
+        #     return JSONResponse(status_code=200, content={"ok": True})
         
         # Skip authentication for public routes
         if self._is_public_route(path, method):
