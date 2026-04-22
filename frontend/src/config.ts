@@ -7,5 +7,5 @@ function trimTrailingSlash(url: string): string {
  * (e.g. https://your-api.onrender.com). Omit trailing slash.
  */
 export const API_BASE_URL = trimTrailingSlash(
-  import.meta.env.VITE_API_BASE_URL || "https://salon-management-system-9fr5.onrender.com"
+  import.meta.env.VITE_API_BASE_URL || "https://salon-management-system-pehs.onrender.com"
 );
