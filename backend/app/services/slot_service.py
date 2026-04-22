@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import List, Optional
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
 from app.models.slot import Slot, SlotStatus
 
 
@@ -99,31 +99,66 @@ class SlotService:
         date: Optional[date] = None,
         barber_id: Optional[int] = None
     ) -> List[Slot]:
-        """
-        Get available slots for a shop
-        
-        Args:
-            db: Database session
-            shop_id: Shop ID
-            date: Filter by specific date (optional)
-            barber_id: Filter by barber (optional)
-        
-        Returns:
-            List of available Slot objects
-        """
+        """Get available slots for a shop (no auto-generation)."""
         query = db.query(Slot).filter(
             Slot.shop_id == shop_id,
             Slot.status == SlotStatus.AVAILABLE,
             Slot.is_active == True
         )
-        
         if date:
             query = query.filter(Slot.date == date)
-        
         if barber_id:
             query = query.filter(Slot.barber_id == barber_id)
-        
         return query.order_by(Slot.date, Slot.start_time).all()
+
+    @staticmethod
+    def get_or_generate_available_slots(
+        db: Session,
+        shop_id: int,
+        opening_time: Optional[time],
+        closing_time: Optional[time],
+        slot_date: Optional[date] = None,
+        barber_id: Optional[int] = None,
+        interval_minutes: int = 30,
+        days_ahead: int = 30,
+    ) -> List[Slot]:
+        """
+        Production-grade slot retrieval: if no slots exist for a requested date
+        (or the next `days_ahead` days when no date is given), auto-generate them
+        from the shop's opening / closing times so customers always see availability.
+
+        This is idempotent — calling it multiple times will not create duplicates.
+        """
+        today = datetime.now().date()
+
+        if slot_date:
+            # Single-date request — auto-generate for that date if needed
+            if slot_date >= today and opening_time and closing_time:
+                SlotService.auto_generate_slots(
+                    db=db,
+                    shop_id=shop_id,
+                    opening_time=opening_time,
+                    closing_time=closing_time,
+                    slot_date=slot_date,
+                    barber_id=barber_id,
+                    interval_minutes=interval_minutes,
+                )
+            return SlotService.get_available_slots(db, shop_id, slot_date, barber_id)
+
+        # No specific date — ensure the next `days_ahead` days are covered
+        if opening_time and closing_time:
+            for i in range(days_ahead):
+                target = today + timedelta(days=i)
+                SlotService.auto_generate_slots(
+                    db=db,
+                    shop_id=shop_id,
+                    opening_time=opening_time,
+                    closing_time=closing_time,
+                    slot_date=target,
+                    barber_id=barber_id,
+                    interval_minutes=interval_minutes,
+                )
+        return SlotService.get_available_slots(db, shop_id, None, barber_id)
     
     @staticmethod
     def get_slots_by_shop(
@@ -198,25 +233,26 @@ class SlotService:
     @staticmethod
     def book_slot(db: Session, slot_id: int) -> Optional[Slot]:
         """
-        Mark a slot as booked
-        
-        Args:
-            db: Database session
-            slot_id: Slot ID
-        
-        Returns:
-            Updated Slot object or None
+        Atomically mark a slot as booked using row-level locking (SELECT FOR UPDATE).
+        Prevents double-booking under concurrent requests (production-grade).
+
+        Returns the updated Slot, or None if the slot is no longer AVAILABLE.
         """
-        slot = db.query(Slot).filter(
-            Slot.id == slot_id,
-            Slot.status == SlotStatus.AVAILABLE
-        ).first()
-        
-        if slot:
-            slot.status = SlotStatus.BOOKED
-            db.commit()
-            db.refresh(slot)
-        return slot
+        try:
+            slot = (
+                db.query(Slot)
+                .filter(Slot.id == slot_id, Slot.status == SlotStatus.AVAILABLE)
+                .with_for_update()
+                .first()
+            )
+            if slot:
+                slot.status = SlotStatus.BOOKED
+                db.commit()
+                db.refresh(slot)
+            return slot
+        except Exception:
+            db.rollback()
+            raise
     
     @staticmethod
     def complete_slot(db: Session, slot_id: int) -> Optional[Slot]:
@@ -238,6 +274,55 @@ class SlotService:
             db.refresh(slot)
         return slot
     
+    @staticmethod
+    def auto_generate_slots(
+        db: Session,
+        shop_id: int,
+        opening_time: time,
+        closing_time: time,
+        slot_date: date,
+        barber_id: Optional[int] = None,
+        interval_minutes: int = 30
+    ) -> List[Slot]:
+        """
+        Auto-generate 30-minute (or custom interval) slots from opening to closing time.
+        Idempotent: returns existing slots if they already exist for the given date.
+        """
+        existing = db.query(Slot).filter(
+            Slot.shop_id == shop_id,
+            Slot.date == slot_date,
+            Slot.is_active == True
+        ).all()
+
+        if existing:
+            return existing
+
+        slots = []
+        current = datetime.combine(slot_date, opening_time)
+        end = datetime.combine(slot_date, closing_time)
+
+        while current + timedelta(minutes=interval_minutes) <= end:
+            slot_end = current + timedelta(minutes=interval_minutes)
+            slot = Slot(
+                shop_id=shop_id,
+                barber_id=barber_id,
+                date=slot_date,
+                start_time=current.time(),
+                end_time=slot_end.time(),
+                status=SlotStatus.AVAILABLE,
+                is_active=True,
+            )
+            slots.append(slot)
+            current = slot_end
+
+        if slots:
+            db.add_all(slots)
+            db.commit()
+            for s in slots:
+                db.refresh(s)
+
+        return slots
+
     @staticmethod
     def delete_slot(db: Session, slot_id: int) -> bool:
         """

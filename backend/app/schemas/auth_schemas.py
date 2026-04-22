@@ -3,6 +3,7 @@ Pydantic schemas for authentication endpoints
 """
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+from datetime import datetime
 from app.models.user import UserRole
 
 
@@ -61,6 +62,7 @@ class UpdateProfileRequest(BaseModel):
     city: Optional[str] = None
     state: Optional[str] = None
     pincode: Optional[str] = None
+    avatar: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -73,8 +75,12 @@ class UserResponse(BaseModel):
     is_active: bool
     is_verified: bool
     points: int
+    address: Optional[str]
     city: Optional[str]
     state: Optional[str]
-    
+    pincode: Optional[str]
+    avatar: Optional[str] = None
+    created_at: Optional[datetime] = None
+
     class Config:
         from_attributes = True

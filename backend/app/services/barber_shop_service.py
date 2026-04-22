@@ -65,31 +65,31 @@ class BarberShopService:
         """Get shop by ID"""
         return db.query(BarberShop).filter(BarberShop.id == shop_id).first()
     
-    @staticmethod
-    def get_all_shops(
-        db: Session,
-        skip: int = 0,
-        limit: int = 100,
-        city: Optional[str] = None,
-        is_active: bool = True
-    ) -> List[BarberShop]:
-        """
-        Get all shops with pagination and filters
+    # @staticmethod
+    # def get_all_shops(
+    #     db: Session,
+    #     skip: int = 0,
+    #     limit: int = 100,
+    #     city: Optional[str] = None,
+    #     is_active: bool = True
+    # ) -> List[BarberShop]:
+    #     """
+    #     Get all shops with pagination and filters
         
-        Args:
-            db: Database session
-            skip: Number of records to skip
-            limit: Maximum number of records to return
-            city: Filter by city
-            is_active: Filter by active status
+    #     Args:
+    #         db: Database session
+    #         skip: Number of records to skip
+    #         limit: Maximum number of records to return
+    #         city: Filter by city
+    #         is_active: Filter by active status
         
-        Returns:
-            List of BarberShop objects
-        """
-        query = db.query(BarberShop).filter(BarberShop.is_active == is_active)
-        if city:
-            query = query.filter(BarberShop.city.ilike(f"%{city}%"))
-        return query.offset(skip).limit(limit).all()
+    #     Returns:
+    #         List of BarberShop objects
+    #     """
+    #     query = db.query(BarberShop).filter(BarberShop.is_active == is_active)
+    #     if city:
+    #         query = query.filter(BarberShop.city.ilike(f"%{city}%"))
+    #     return query.offset(skip).limit(limit).all()
     
     @staticmethod
     def search_shops(
@@ -101,7 +101,7 @@ class BarberShopService:
         radius_km: float = 10.0,
         min_rating: Optional[float] = None,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 10
     ) -> List[BarberShop]:
         """
         Search shops with advanced filtering

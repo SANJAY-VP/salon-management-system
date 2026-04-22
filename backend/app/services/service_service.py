@@ -55,7 +55,7 @@ class ServiceService:
     def get_services_by_shop(
         db: Session,
         shop_id: int,
-        is_active: bool = True,
+        active_only: bool = True,
         category: Optional[ServiceCategory] = None
     ) -> List[Service]:
         """
@@ -64,7 +64,7 @@ class ServiceService:
         Args:
             db: Database session
             shop_id: Shop ID
-            is_active: Filter by active status
+            active_only: Filter by active status
             category: Filter by service category
         
         Returns:
@@ -72,8 +72,8 @@ class ServiceService:
         """
         query = db.query(Service).filter(Service.shop_id == shop_id)
         
-        if is_active is not None:
-            query = query.filter(Service.is_active == is_active)
+        if active_only:
+            query = query.filter(Service.is_active == True)
         
         if category:
             query = query.filter(Service.category == category)

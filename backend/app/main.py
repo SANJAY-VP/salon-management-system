@@ -4,6 +4,7 @@ Main FastAPI application entry point for Salon Management System
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import logging
@@ -14,7 +15,8 @@ from app.config import settings
 from app.db.database import engine, Base, create_tables
 from app.middleware.auth_middleware import AuthenticationMiddleware
 
-from app.api.routes import auth, shops, dashboard, bookings, slots, services, reviews
+from app.api.routes import auth, shops, dashboard, bookings, slots, services, reviews, barbers, images
+import os
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -22,22 +24,41 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Local disk uploads (skipped when CLOUDINARY_URL is set)
+if not settings.CLOUDINARY_URL:
+    os.makedirs("uploads/avatars", exist_ok=True)
+    os.makedirs("uploads/shops", exist_ok=True)
+    os.makedirs("uploads/profiles", exist_ok=True)
+
+def _clean_operation_id(route) -> str:
+    """Generate clean, human-readable operation IDs: '<tag>_<method>_<path>'."""
+    tags = getattr(route, "tags", None) or ["api"]
+    tag = tags[0].lower().replace(" ", "_")
+    # Use explicit operation_id when provided, otherwise derive from path + method
+    methods = getattr(route, "methods", {"GET"})
+    method = next(iter(methods)).lower()
+    path_part = route.path.replace("/", "_").strip("_").replace("{", "").replace("}", "")
+    return f"{tag}_{method}_{path_part}"
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="A comprehensive slot-based booking system for salon/barber shops",
     debug=settings.DEBUG,
+    generate_unique_id_function=_clean_operation_id,
 )
+app.add_middleware(AuthenticationMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
-app.add_middleware(AuthenticationMiddleware)
 
 
 @app.middleware("http")
@@ -126,6 +147,9 @@ async def health_check():
     }
 
 
+if not settings.CLOUDINARY_URL:
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(shops.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
@@ -133,6 +157,8 @@ app.include_router(bookings.router, prefix="/api/v1")
 app.include_router(slots.router, prefix="/api/v1")
 app.include_router(services.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
+app.include_router(barbers.router, prefix="/api/v1")
+app.include_router(images.router, prefix="/api/v1")
 
 
 if __name__ == "__main__":
@@ -142,3 +168,5 @@ if __name__ == "__main__":
         port=8000,
         reload=settings.DEBUG
     )
+
+

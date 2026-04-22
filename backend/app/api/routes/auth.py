@@ -18,10 +18,9 @@ from app.models.user import User
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=dict)
+@router.post("/register", status_code=status.HTTP_201_CREATED, summary="Register User", operation_id="auth_register")
 def register_user(request: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user"""
-    # Check if email already exists
     existing_user = UserService.get_user_by_email(db, request.email)
     if existing_user:
         raise HTTPException(
@@ -29,19 +28,8 @@ def register_user(request: RegisterRequest, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
-    # Check if phone already exists (if provided)
-    # if request.phone:
-    #     existing_phone = UserService.get_user_by_phone(db, request.phone)
-    #     if existing_phone:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_400_BAD_REQUEST,
-    #             detail="Phone number already registered"
-    #         )
-    
-    # Hash the password
     password_hash = hash_password(request.password)
     
-    # Create user
     try:
         user = UserService.create_user(
             db=db,
@@ -52,19 +40,25 @@ def register_user(request: RegisterRequest, db: Session = Depends(get_db)):
             role=request.role,
         )
         
-        return {"message": "User registered successfully","user_id": user.id,"email": user.email}
+        return {
+            "message": "User registered successfully",
+            "user_id": user.id,
+            "email": user.email
+        }
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Failed to create user: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create user: {str(e)}"
+        )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, summary="Login", operation_id="auth_login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
     Login with email and password
     
     Returns access token and refresh token
     """
-    # Get user by email
     user = UserService.get_user_by_email(db, request.email)
     if not user:
         raise HTTPException(
@@ -72,21 +66,18 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid email or password"
         )
     
-    # Verify password
     if not verify_password(request.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
     
-    # Check if user is active
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is deactivated"
         )
     
-    # Create tokens
     tokens = create_token_pair(user.id, user.email, user.role.value)
     
     return TokenResponse(
@@ -98,7 +89,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, summary="Get My Profile", operation_id="auth_get_me")
 def get_current_user_profile(request: Request):
     """
     Get current authenticated user's profile
@@ -115,12 +106,16 @@ def get_current_user_profile(request: Request):
         is_active=current_user.is_active,
         is_verified=current_user.is_verified,
         points=current_user.points,
+        address=current_user.address,
         city=current_user.city,
-        state=current_user.state
+        state=current_user.state,
+        pincode=current_user.pincode,
+        avatar=getattr(current_user, "avatar", None),
+        created_at=current_user.created_at if hasattr(current_user, 'created_at') else None
     )
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=UserResponse, summary="Update My Profile", operation_id="auth_update_me")
 def update_profile(
     req: Request,
     request: UpdateProfileRequest,
@@ -154,7 +149,9 @@ def update_profile(
         update_data["state"] = request.state
     if request.pincode is not None:
         update_data["pincode"] = request.pincode
-    
+    if request.avatar is not None:
+        update_data["avatar"] = request.avatar
+
     # Update user
     updated_user = UserService.update_user(db, current_user.id, **update_data)
     
@@ -173,12 +170,16 @@ def update_profile(
         is_active=updated_user.is_active,
         is_verified=updated_user.is_verified,
         points=updated_user.points,
+        address=updated_user.address,
         city=updated_user.city,
-        state=updated_user.state
+        state=updated_user.state,
+        pincode=updated_user.pincode,
+        avatar=getattr(updated_user, "avatar", None),
+        created_at=updated_user.created_at if hasattr(updated_user, 'created_at') else None
     )
 
 
-@router.post("/change-password", status_code=status.HTTP_200_OK)
+@router.post("/change-password", status_code=status.HTTP_200_OK, summary="Change Password", operation_id="auth_change_password")
 def change_password(
     req: Request,
     request: ChangePasswordRequest,
@@ -259,7 +260,7 @@ def deactivate_account(
     return {"message": "Account deactivated successfully"}
 
 
-@router.post("/logout", status_code=status.HTTP_200_OK)
+@router.post("/logout", status_code=status.HTTP_200_OK, summary="Logout", operation_id="auth_logout")
 def logout(request: Request):
     """
     Logout current user

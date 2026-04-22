@@ -58,6 +58,28 @@ class ReviewService:
         return review
     
     @staticmethod
+    def get_user_review_for_shop(
+        db: Session,
+        user_id: int,
+        shop_id: int
+    ) -> Optional[Review]:
+        """
+        Get a user's review for a specific shop
+        
+        Args:
+            db: Database session
+            user_id: User ID
+            shop_id: Shop ID
+        
+        Returns:
+            Review object or None
+        """
+        return db.query(Review).filter(
+            Review.user_id == user_id,
+            Review.shop_id == shop_id
+        ).first()
+    
+    @staticmethod
     def get_review_by_id(db: Session, review_id: int) -> Optional[Review]:
         """Get review by ID"""
         return db.query(Review).filter(Review.id == review_id).first()

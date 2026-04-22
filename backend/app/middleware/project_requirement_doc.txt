@@ -1,0 +1,97 @@
+Barber Shop Management System
+
+A slot-based booking system that connects users and barbers to reduce uncertainty, waiting time, and idle hours.
+
+System Design
+1) USER: 1) Barber Shop Owner, 2) Customer
+
+2) FEATURES: 
+User can see the idle slots
+Rating and services given to the salon/ barber
+Provide interface for multiple services (like haircut, makeup, spa)
+Adv. slot booking in the app 
+Payment gateway (Razorpay)
+Recommendation according to user requirement
+Provide a global search bar with advanced filtering (keyword (location) + long + lat)
+Add Extra Points feature  [using 100 points haircut free]
+Users doing home services can also register
+
+CRUD Operation for barber shop and profile 
+CRUD  Operation for User profile
+
+3) COMPONENTS
+1) Frontend - 
+A) Responsibility
+Display Clear, easy and intuitive UI
+Provide interface for CRUD ops
+Communicate with backend for data syncing
+Reminder based on timing
+Location
+Notifications 
+B) Pages
+1. USER (Customer) – UI Pages
+1) Register 2) Login 3) Home Page 4) Shop Details Page 5) Barber Profile Page 6) Slot Selection Page 7) Booking Confirmation Page 8) Payment Page 9) Booking Success Page 10) My Bookings Page 11) Ratings & Reviews Page 12) Profile Page
+
+2. BARBER – UI Pages 
+1) Barber Register, 2) Barber Dashboard 3) Manage Slots Page, 4) Pricing Management Page, 5) Booking Details Page, 6) Earnings Page, 7) Reviews Page, 8)  Profile Management
+-
+2) Backend - 
+API 
+Get : 
+home(), about(), services()
+getShops()  [ with/without filter ]
+getSlotes()  [taking shop id]
+getPaymentHistory()  [ taking user/ shop id]
+getShopDetails()   [taking shopid ]
+getPoints()
+
+Post: 
+RegisterUser()
+login ()
+logout()
+createShop()
+addServices()
+shopOpenClose()
+bookSlot()
+makePayment()
+sendBookingCode()
+
+Patch:
+updateProfile()
+updateShopeProfile()
+
+Delete:
+deteleShop()
+deleteProfile()
+deleteService()
+
+3) Database
+PSQL, Redis (cache)
+
+UserDB ( info of user )
+BarberShopDB ( info of barber shops )
+BarbersDB,  ( barbers and id of their shops )
+
+When slots get booked : 
+SlotsDB ( when slots get booked, added to the DB, check whether free or booked ) 
+BookingsDB ( userId, slotId )
+TransactionsDB ( status of payments done )
+
+4) External APIs
+A) Responsibility
+ - Provide authentication
+ - Location Services
+B) Provides
+ 1) Razorpay API, 2) Geocordinate API
+
+
+4) TECH STACK
+React.js
+Tailwind CSS
+Python, FastAPI, 
+Razor Pay (Payment Interface)
+Geo coordinate API
+Firebase Auth
+
+
+

@@ -22,7 +22,7 @@ class Barber(Base):
     
     # Bio and profile
     bio = Column(Text, nullable=True)
-    profile_image = Column(String(500), nullable=True)
+    profile_image = Column(Text, nullable=True)
     
     # Status
     is_active = Column(Boolean, default=True)

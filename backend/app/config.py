@@ -1,22 +1,40 @@
 """
 Application configuration using pydantic-settings for environment management
 """
-import os
-from typing import Optional
-from pydantic_settings import BaseSettings
-from pydantic import Field
+from typing import Annotated, Any, List, Optional
+
+from pydantic import AliasChoices, BeforeValidator, Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _normalize_database_url(v: Any) -> Any:
+    if isinstance(v, str) and v.startswith("postgres://"):
+        return v.replace("postgres://", "postgresql://", 1)
+    return v
+
+
+def _split_cors_string(s: str) -> List[str]:
+    parts = [x.strip() for x in s.split(",") if x.strip()]
+    return parts if parts else ["http://localhost:5173", "http://localhost:3000"]
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
-    
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+    )
+
     APP_NAME: str = "Salon Management System"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = Field(default=False, description="Enable debug mode")
-    
-    DATABASE_URL: str = Field(
+
+    DATABASE_URL: Annotated[str, BeforeValidator(_normalize_database_url)] = Field(
         default="sqlite:///./salon.db",
-        description="Database connection URL"
+        description="Database connection URL (PostgreSQL or SQLite)",
     )
     
     SECRET_KEY: str = Field(
@@ -59,11 +77,27 @@ class Settings(BaseSettings):
         default=None,
         description="Path to Firebase credentials JSON file"
     )
-    
-    CORS_ORIGINS: list = Field(
-        default=["http://localhost:3000", "http://localhost:5173"],
-        description="Allowed CORS origins"
+
+    CLOUDINARY_URL: Optional[str] = Field(
+        default=None,
+        description="cloudinary:// API URL for image CDN (optional; uses local /uploads if unset)",
     )
+
+    API_PUBLIC_URL: str = Field(
+        default="http://localhost:8000",
+        description="Public base URL of this API (used for local disk image URLs)",
+    )
+
+    cors_origins_raw: str = Field(
+        default="http://localhost:5173,http://localhost:3000",
+        validation_alias=AliasChoices("CORS_ORIGINS", "ALLOWED_ORIGINS"),
+        description="Comma-separated origins (e.g. https://app.vercel.app,http://localhost:5173)",
+    )
+
+    @computed_field
+    @property
+    def cors_origins(self) -> List[str]:
+        return _split_cors_string(self.cors_origins_raw)
     
     SMTP_HOST: Optional[str] = Field(default=None, description="SMTP server host")
     SMTP_PORT: Optional[int] = Field(default=587, description="SMTP server port")
@@ -75,11 +109,6 @@ class Settings(BaseSettings):
     
     POINTS_PER_RUPEE: float = Field(default=0.1, description="Points earned per rupee spent")
     POINTS_FOR_FREE_SERVICE: int = Field(default=100, description="Points required for free service")
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
 
 
 settings = Settings()
@@ -92,5 +121,5 @@ def get_database_url() -> str:
 
 def is_production() -> bool:
     """Check if running in production mode"""
-    return not settings.DEBUG and settings.DATABASE_URL.startswith("postgresql")
+    return not settings.DEBUG and not settings.DATABASE_URL.startswith("sqlite")
 

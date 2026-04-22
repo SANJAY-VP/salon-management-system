@@ -1,0 +1,11 @@
+__pycache__
+*.py[cod]
+*.db
+.env
+.env.*
+uploads
+.pytest_cache
+.mypy_cache
+.git
+*.md
+alembic/versions/__pycache__

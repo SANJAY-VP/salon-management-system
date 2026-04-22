@@ -26,12 +26,15 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         "/health",
         "/api/v1/auth/register",
         "/api/v1/auth/login",
+        "/api/v1/auth/forgot-password",
+        "/api/v1/auth/reset-password",
     ]
     
     # Routes that start with these prefixes are public
     PUBLIC_PREFIXES: List[str] = [
         "/static",
         "/public",
+        "/uploads",
         "/api/v1/dashboard",
     ]
     
@@ -40,9 +43,14 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         Process each request and validate authentication if needed
         """
         path = request.url.path
+        method = request.method
+        
+        # CRITICAL: Always allow OPTIONS requests (CORS preflight)
+        if method == "OPTIONS":
+            return await call_next(request)
         
         # Skip authentication for public routes
-        if self._is_public_route(path):
+        if self._is_public_route(path, method):
             return await call_next(request)
         
         # Extract token from Authorization header
@@ -115,9 +123,10 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
                 content={"detail": f"Authentication failed: {str(e)}"}
             )
     
-    def _is_public_route(self, path: str) -> bool:
+    def _is_public_route(self, path: str, method: str = "GET") -> bool:
         """
-        Check if a route is public (doesn't require authentication)
+        Check if a route is public (doesn't require authentication).
+        Some routes are only public for read (GET) operations.
         """
         # Check exact matches
         if path in self.PUBLIC_ROUTES:
@@ -128,22 +137,24 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             if path.startswith(prefix):
                 return True
         
-        # Check public GET routes with path parameters
         # Allow viewing shop reviews (GET /api/v1/reviews/shop/{id})
-        if path.startswith("/api/v1/reviews/shop/") and "/shop/" in path:
+        if path.startswith("/api/v1/reviews/shop/") and method == "GET":
             return True
         
-        # Allow viewing shop slots (GET /api/v1/slots/shop/{id})
-        if path.startswith("/api/v1/slots/shop/"):
+        # Allow viewing shop slots (GET only — POST routes like auto-generate require auth)
+        if path.startswith("/api/v1/slots/shop/") and method == "GET":
             return True
         
         # Allow viewing individual shop details (GET /api/v1/shops/{id})
-        if path.startswith("/api/v1/shops/") and path.count("/") == 4:
-            # Only shop details, not nested routes like /shops/{id}/something
+        if path.startswith("/api/v1/shops/") and path.count("/") == 4 and method == "GET":
             return True
         
-        # Allow viewing individual service details (GET /api/v1/services/)
-        if path.startswith("/api/v1/services/shop/"):
+        # Allow viewing shop services (GET /api/v1/services/shop/{id})
+        if path.startswith("/api/v1/services/shop/") and method == "GET":
             return True
-        
+
+        # Allow listing barbers for a shop (GET /api/v1/barbers/shop/{id}) — matches public route docstring
+        if path.startswith("/api/v1/barbers/shop/") and method == "GET":
+            return True
+
         return False

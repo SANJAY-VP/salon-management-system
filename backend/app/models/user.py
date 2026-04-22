@@ -21,7 +21,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    phone = Column(String(20), unique=True, index=True, nullable=True)
+    phone = Column(String(20),index=True, nullable=True)
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     role = Column(SQLEnum(UserRole), default=UserRole.CUSTOMER, nullable=False)
@@ -32,7 +32,9 @@ class User(Base):
     pincode = Column(String(10), nullable=True)
     
     points = Column(Integer, default=0)
-    
+
+    avatar = Column(Text, nullable=True)
+
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
