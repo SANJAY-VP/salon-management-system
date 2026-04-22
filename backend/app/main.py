@@ -48,8 +48,7 @@ app = FastAPI(
     debug=settings.DEBUG,
     generate_unique_id_function=_clean_operation_id,
 )
-app.add_middleware(AuthenticationMiddleware)
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,6 +57,8 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+# Authentication Middleware
+app.add_middleware(AuthenticationMiddleware)
 
 
 
