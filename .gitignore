@@ -1,0 +1,38 @@
+# ===== Python / FastAPI =====
+__pycache__/
+build/
+!.env.example
+venv/
+.cursor/
+# ===== Database =====
+*.db
+*.sqlite
+*.sqlite3
+/backend/salon.db
+
+# ===== Node / React (Vite) =====
+node_modules/
+.vite/
+frontend/dist/
+
+
+# ===== OS / Editor =====
+.vscode/
+
+# ===== Docker =====
+*.pid
+docker-compose.override.yml
+
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+*.ipynb
+
+
+DEPLOYMENT_PLATFORM_INSTRUCTIONS.md
+FLOW.md
+README.md
+learn.md
+frontend/readme.md
+frontend/ReadMe1.md
+UI_UX_README.md
