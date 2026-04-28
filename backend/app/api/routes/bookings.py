@@ -204,9 +204,10 @@ def get_shop_bookings(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found")
     if shop.owner_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
-    return BookingService.get_bookings_by_shop(
+    bookings = BookingService.get_bookings_by_shop(
         db=db, shop_id=shop_id, status=booking_status, skip=skip, limit=limit
     )
+    return [_enrich(b, db) for b in bookings]
 
 
 @router.get(

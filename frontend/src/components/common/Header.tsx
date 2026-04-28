@@ -17,7 +17,13 @@ export function Header({ variant = "customer", onProfileClick }: HeaderProps) {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
-  const [currentLang, setCurrentLang] = useState('en');
+  const [currentLang, setCurrentLang] = useState(() => {
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|; )googtrans=\/en\/([^;]+)/);
+      return match ? match[1] : 'en';
+    }
+    return 'en';
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -87,7 +93,7 @@ export function Header({ variant = "customer", onProfileClick }: HeaderProps) {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
-      isScrolled ? "py-3 md:py-4 bg-background/90 backdrop-blur-3xl border-b border-white/[0.05]" : "py-4 md:py-8 bg-transparent"
+      isScrolled || mobileOpen ? "py-3 md:py-4 bg-background/95 backdrop-blur-3xl border-b border-white/[0.05]" : "py-4 md:py-8 bg-transparent"
     }`}>
       <div className="max-w-[1600px] mx-auto px-4 md:px-12">
         <div className="flex items-center justify-between">
@@ -98,7 +104,7 @@ export function Header({ variant = "customer", onProfileClick }: HeaderProps) {
               <LuScissors size={26} className="md:w-8 md:h-8" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg md:text-xl font-black tracking-[-0.04em] text-white leading-none">
+              <span className="text-base md:text-xl font-black tracking-[-0.04em] text-white leading-none">
                 Salon<span className="text-gold">Book</span>
               </span>
               <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em] mt-0.5 hidden sm:block">Booking App</span>
@@ -386,11 +392,11 @@ export function PageHeader({ title, subtitle, action, onBack }: {
               <span className="text-[10px] font-black uppercase tracking-widest italic">Back</span>
             </button>
           )}
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-6 leading-[1.1]">
+          <h1 className="text-3xl md:text-6xl font-black text-white tracking-tight mb-4 md:mb-6 leading-[1.1]">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-base text-white/60 font-medium max-w-2xl leading-relaxed tracking-wide">{subtitle}</p>
+            <p className="text-sm md:text-base text-white/60 font-medium max-w-2xl leading-relaxed tracking-wide">{subtitle}</p>
           )}
         </div>
         {action && <div className="animate-fade-up delay-100 shrink-0">{action}</div>}

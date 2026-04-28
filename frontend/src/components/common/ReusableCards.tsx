@@ -59,7 +59,7 @@ export function ShopCard({ shop, onClick, variant = "customer" }: ShopCardProps 
       <div className="p-5 md:p-10">
         <div className="flex justify-between items-start mb-4 md:mb-6">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl md:text-3xl font-bold font-serif text-white mb-1 md:mb-2 group-hover:text-gold transition-colors tracking-tighter uppercase truncate">
+            <h3 className="text-lg md:text-3xl font-bold font-serif text-white mb-1 md:mb-2 group-hover:text-gold transition-colors tracking-tighter uppercase truncate">
               {shop.name}
             </h3>
             <div className="flex items-center gap-2 text-[10px] font-black text-white/60 uppercase tracking-widest">
@@ -180,8 +180,14 @@ export function BookingCard({
               </h3>
               <p className="text-[10px] font-bold text-gold/80 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
                 <Icon icon="store" size={10} />
-                {shopName}
+                {booking.customer_name || "Guest"}
               </p>
+              {booking.customer_phone && (
+                <p className="text-[10px] font-bold text-white/50 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
+                  <Icon icon="phone" size={10} />
+                  {booking.customer_phone}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -246,8 +252,8 @@ export function ServiceCard({ service, onAdd }: { service: Service, onAdd: () =>
       <div className="absolute -top-4 -right-4 w-20 h-20 bg-gold/5 blur-2xl rounded-full" />
       <div>
         <div className="flex justify-between items-start mb-3 md:mb-4 gap-2">
-           <h3 className="font-bold font-serif text-white text-lg md:text-2xl group-hover:text-gold transition-colors tracking-tight uppercase truncate">{service.name}</h3>
-           <p className="text-lg md:text-2xl font-bold text-gold font-serif tracking-tighter flex-shrink-0">₹{service.price}</p>
+           <h3 className="font-bold font-serif text-white text-base md:text-2xl group-hover:text-gold transition-colors tracking-tight uppercase truncate">{service.name}</h3>
+           <p className="text-base md:text-2xl font-bold text-gold font-serif tracking-tighter flex-shrink-0">₹{service.price}</p>
         </div>
         <div className="flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-cream/50 mb-4 md:mb-6">
             <div className="flex items-center gap-1.5">
@@ -294,7 +300,7 @@ export function BarberCard({ barber, onBook, acceptsHomeService }: BarberCardPro
             {barber.name?.charAt(0)?.toUpperCase() || "B"}
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold font-serif text-white text-lg md:text-2xl group-hover:text-gold transition-colors tracking-tight uppercase truncate">
+            <h3 className="font-bold font-serif text-white text-base md:text-2xl group-hover:text-gold transition-colors tracking-tight uppercase truncate">
               {barber.name}
             </h3>
             <div className="flex items-center gap-2 text-[10px] font-black text-gold/60 uppercase tracking-widest mt-1">
@@ -403,9 +409,9 @@ export function EmptyState({ icon, title, description, action }: {
         </div>
       )}
 
-      <h3 className="text-3xl font-black text-white mb-6 leading-none italic">{title}</h3>
+      <h3 className="text-2xl md:text-3xl font-black text-white mb-6 leading-none italic">{title}</h3>
       {description && (
-        <p className="text-white/60 text-base mb-12 max-w-sm font-medium leading-relaxed text-center">{description}</p>
+        <p className="text-white/60 text-sm md:text-base mb-8 md:mb-12 max-w-sm font-medium leading-relaxed text-center">{description}</p>
       )}
       {action && <div className="animate-fade-up">{action}</div>}
     </Card>

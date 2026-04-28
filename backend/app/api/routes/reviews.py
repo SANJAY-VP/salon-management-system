@@ -95,6 +95,11 @@ def get_shop_reviews(
         limit=limit
     )
     
+    from app.models.user import User
+    for r in reviews:
+        u = db.query(User).filter(User.id == r.user_id).first()
+        r.customer_name = u.full_name if u else "Guest"
+        
     return reviews
 
 

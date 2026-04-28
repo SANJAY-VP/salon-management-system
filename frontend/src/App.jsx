@@ -25,6 +25,7 @@ import BarberProfile from "./pages/barber/Profile";
 import ManageSlots from "./pages/barber/ManageSlots";
 import BarberDashboard from "./pages/barber/BarberDashboard";
 import ShopDetails from "./pages/barber/ShopDetails";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -83,7 +84,7 @@ export default function App() {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

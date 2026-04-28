@@ -122,7 +122,7 @@ export default function Search() {
         </div>
 
         {loading ? (
-          <div className="py-48 text-center">
+          <div className="py-24 md:py-32 text-center">
             <div className="inline-block w-12 h-12 border-2 border-gold/10 border-t-gold rounded-full animate-spin mb-8 shadow-2xl shadow-gold/20" />
             <p className="text-gold/30 font-black text-[10px] tracking-widest uppercase animate-pulse">Searching...</p>
           </div>
@@ -145,9 +145,9 @@ export default function Search() {
             />
           </div>
         ) : (
-          <div className="py-48 text-center">
+          <div className="py-24 md:py-32 text-center flex justify-center items-center">
             <EmptyState
-              icon={<Icon icon="store" />}
+              // icon={<Icon icon="store" />}
               title="No Shops Found"
               description={searchQuery ? `No salons match "${searchQuery}". Try a different name, or clear your filters.` : "Try adjusting your filters or search for a different location."}
               action={

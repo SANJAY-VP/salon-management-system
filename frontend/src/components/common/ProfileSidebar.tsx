@@ -62,19 +62,19 @@ export const ProfileSidebar = ({
 
     return (
         <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-32 animate-fade-up">
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleImageChange} 
-                className="hidden" 
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
                 accept="image/*"
             />
-            
+
             {/* Profile Summary Card */}
             <Card className="text-center p-8 border-gold/10 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gold/10 to-transparent opacity-50" />
 
-                <div 
+                <div
                     onClick={handleImageClick}
                     className="relative mx-auto w-40 h-40 rounded-[48px] overflow-hidden border-2 border-gold/10 hover:border-gold/30 shadow-2xl mb-10 transition-all duration-700 cursor-pointer group/avatar"
                 >

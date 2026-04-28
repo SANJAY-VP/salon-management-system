@@ -46,19 +46,7 @@ npm run dev                         # starts on http://localhost:5173
 1. **Discover** — Browse / search salons on the home / search page.
 2. **Explore** — View services, barbers, and reviews inside a shop page.
 3. **Add to Cart** — Select one or more services; they land in the cart.
-4. **Pick Slots** — Each cart item has an inline slot picker. Available slots are shown in green; slots already chosen for another service in the same cart are shown in yellow (concurrency prevention).
-5. **Pay** — "Make Payment" creates all bookings and opens the Razorpay checkout.
-6. **Confirm** — Booking confirmation is shown and full booking history is accessible from the profile.
-
----
-
-## Slot System (Production-Grade)
-
-Slots are **self-healing** — no manual intervention by barbers is required:
-
-- The `GET /api/v1/slots/shop/{id}/available` endpoint auto-generates 30-minute slots from the shop's `opening_time` → `closing_time` **on-demand** when a customer requests a date that has no slots yet.
-- The `GET /api/v1/slots/shop/{id}` (barber calendar) also auto-generates for any date range it is asked to display.
-- The barber calendar still lets owners **view** all slots per day via a click-to-open modal (booked = red with customer name, available = green).
+4. **Pick Slots** — Each cart item has an inline slot picker. ts owners **view** all slots per day via a click-to-open modal (booked = red with customer name, available = green).
 - Concurrency: once a slot is booked, it flips to `BOOKED` status and disappears from the available list — other customers never see it.
 
 ---

@@ -129,7 +129,7 @@ export default function BookingSuccess() {
               className="py-6 !rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-gold/20"
               onClick={() => navigate("/customer/profile")}
             >
-              Continue Exploration →
+              View Bookings →
               </Button>
           </div>
 

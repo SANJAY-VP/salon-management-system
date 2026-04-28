@@ -25,6 +25,7 @@ class ReviewResponse(BaseModel):
     """Schema for review response"""
     id: int
     user_id: int
+    customer_name: Optional[str] = None
     shop_id: int
     rating: int
     title: Optional[str]

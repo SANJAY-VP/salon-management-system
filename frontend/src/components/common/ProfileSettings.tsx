@@ -152,12 +152,12 @@ export default function ProfileSettings() {
               variant="avatar"
               context="avatar"
               entityId={user?.id}
-              initialUrl={resolveAvatarImage(user?.avatar, user?.id)}
-              name={user?.fullName || user?.name}
+              initialUrl={resolveAvatarImage((user as any)?.avatar, user?.id)}
+              name={(user as any)?.full_name || (user as any)?.name}
               onUpload={async (result) => {
                 try {
                   const updated = await authService.updateProfile({ avatar: result.filename });
-                  updateUser({ avatar: updated.avatar ?? result.filename });
+                  updateUser(updated);
                 } catch {
                   toast.error("Failed to save avatar.");
                 }
