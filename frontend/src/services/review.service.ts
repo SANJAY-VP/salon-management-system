@@ -25,6 +25,7 @@ export interface ReviewResponse {
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
+  customer_name?: string;
   user?: {
     id: number;
     full_name: string;

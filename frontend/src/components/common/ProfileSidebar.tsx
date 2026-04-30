@@ -84,14 +84,6 @@ export const ProfileSidebar = ({
                     >
                         {isEditing ? "Cancel editing" : "Edit profile"}
                     </Button>
-                    <Button
-                        variant="secondary"
-                        fullWidth
-                        onClick={onLogout}
-                        className="py-3 !rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/50 border-white/10"
-                    >
-                        Sign out
-                    </Button>
                 </div>
             </Card>
 

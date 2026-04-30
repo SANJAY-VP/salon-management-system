@@ -95,20 +95,20 @@ export default function Home() {
                 look you want.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 mb-12 sm:mb-20">
+              <div className="grid grid-cols-2 gap-4 sm:gap-12 mb-12 sm:mb-20">
                 <div className="group">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-6 group-hover:border-gold/30 transition-all">
+                  <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gold/30 transition-all">
                     <Icon icon="scissors" size={18} className="text-gold" />
                   </div>
                   <h4 className="text-base sm:text-lg font-bold text-white tracking-tight mb-2">Expert Barbers</h4>
-                  <p className="text-sm text-white/50 font-medium">Skilled professionals.</p>
+                  <p className="text-xs sm:text-sm text-white/50 font-medium">Skilled professionals.</p>
                 </div>
                 <div className="group">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-6 group-hover:border-gold/30 transition-all">
+                  <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gold/30 transition-all">
                     <Icon icon="calendar" size={18} className="text-gold" />
                   </div>
                   <h4 className="text-base sm:text-lg font-bold text-white tracking-tight mb-2">Fast Booking</h4>
-                  <p className="text-sm text-white/50 font-medium">No waiting in line.</p>
+                  <p className="text-xs sm:text-sm text-white/50 font-medium">No waiting in line.</p>
                 </div>
               </div>
 
@@ -152,18 +152,18 @@ export default function Home() {
             {faqs.map((faq, idx) => (
               <Card
                 key={idx}
-                className="p-5 sm:p-8 bg-white/[0.02] border-white/5 rounded-2xl sm:rounded-[32px] hover:border-gold/20 transition-all duration-700 group cursor-pointer"
+                className="p-0 bg-white/[0.02] border-white/5 rounded-2xl sm:rounded-[32px] hover:border-gold/20 transition-all duration-700 group"
               >
                 <details className="group/details">
-                  <summary className="list-none flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 cursor-pointer text-left">
+                  <summary className="list-none flex justify-between items-center gap-4 cursor-pointer text-left p-5 sm:p-5">
                     <span className="text-base sm:text-lg md:text-xl font-bold font-serif text-white uppercase tracking-tighter group-hover/details:text-gold transition-colors pr-2">
                       {faq.q}
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 group-hover/details:text-gold group-hover/details:border-gold/30 transition-all shrink-0 self-end sm:self-auto">
+                    <div className="hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center text-white/30 group-hover/details:text-gold group-hover/details:border-gold/30 transition-all shrink-0">
                       <Icon icon="plus" size={14} className="group-open/details:rotate-45 transition-transform" />
                     </div>
                   </summary>
-                  <div className="pt-4 sm:pt-6 text-xs sm:text-sm text-white/60 leading-relaxed max-w-2xl font-medium animate-fade-in">
+                  <div className="px-4 sm:px-4 pb-4 sm:pb-4 pt-0 text-xs sm:text-sm text-white/60 leading-relaxed max-w-2xl font-medium animate-fade-in">
                     {faq.a}
                   </div>
                 </details>

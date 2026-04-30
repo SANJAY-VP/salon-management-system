@@ -29,7 +29,7 @@ import { useImageUpload } from "../../hooks/useImageUpload";
 import { imageService, ImageContext, UploadResult } from "../../services/image.service";
 import { ACCEPTED_IMAGE_TYPES } from "../../config/images";
 import { Icon } from "./Icon";
-import { Avatar } from "./AppImage";
+import { Avatar, AppImage } from "./AppImage";
 
 export interface ImageUploaderProps {
   /** Visual style */
@@ -64,27 +64,40 @@ export default function ImageUploader({
 
   const isClickable = !disabled && !isUploading;
 
-  // ── Avatar variant ────────────────────────────────────────────────────────
   if (variant === "avatar") {
+    const initials = name
+      ? name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+      : "?";
+      
+    // Use AppImage's fallback mechanism if there's an entityId
+    const fallbackSrc = entityId
+      ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${entityId}`
+      : undefined;
+
     return (
       <div
-        className={`relative group inline-block ${isClickable ? "cursor-pointer" : "cursor-default"} ${className}`}
+        className={`relative group inline-block overflow-hidden flex-shrink-0 bg-white/5 ring-2 ring-gold/20 group-hover:ring-gold/50 transition-all duration-300 ${isClickable ? "cursor-pointer" : "cursor-default"} ${className || 'w-28 h-28 rounded-[24px]'}`}
         onClick={isClickable ? openPicker : undefined}
         title={isClickable ? "Click to change photo" : undefined}
       >
-        <Avatar
-          src={previewUrl}
-          name={name}
-          seed={entityId}
-          size="xl"
-          className="ring-2 ring-gold/20 group-hover:ring-gold/50 transition-all duration-300"
-        />
+        {previewUrl ? (
+          <AppImage
+            src={previewUrl}
+            fallback={fallbackSrc}
+            alt={name || "Avatar"}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gold/10 flex items-center justify-center font-black text-gold text-3xl">
+            {initials}
+          </div>
+        )}
 
         {/* Hover overlay */}
         {isClickable && (
-          <div className="absolute inset-0 rounded-[24px] bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
             <Icon icon="camera" size={20} className="text-gold" />
-            <span className="text-[9px] font-black text-gold uppercase tracking-widest">
+            <span className="text-[9px] font-black text-gold uppercase tracking-widest mt-1">
               Change
             </span>
           </div>
@@ -92,7 +105,7 @@ export default function ImageUploader({
 
         {/* Loading spinner */}
         {isUploading && (
-          <div className="absolute inset-0 rounded-[24px] bg-black/70 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
           </div>
         )}

@@ -78,7 +78,7 @@ export function Footer() {
 
           {/* Links Sections */}
           {footerSections.map((section, index) => (
-            <nav key={index} aria-label={section.title}>
+            <nav key={index} aria-label={section.title} className="hidden md:block">
               <h3 className="text-white font-serif text-lg font-semibold mb-6 uppercase tracking-wider">
                 {section.title}
               </h3>

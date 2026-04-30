@@ -181,21 +181,6 @@ export default function ReviewManagement({ shopId, shopName }: ReviewManagementP
         )}
       </div>
 
-      {myReview && (
-        <Card className="p-6 mb-6 bg-gold/5 border-gold/20">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-cream mb-2">Your Review</h3>
-              {renderStars(myReview.rating)}
-            </div>
-            <span className="text-xs text-cream/50">
-              {new Date(myReview.created_at).toLocaleDateString()}
-            </span>
-          </div>
-          <p className="text-cream/80">{myReview.comment}</p>
-        </Card>
-      )}
-
       {reviews.length === 0 && !myReview ? (
         <Card className="text-center py-12">
           <h3 className="text-xl text-cream mb-4">No reviews yet</h3>
@@ -203,11 +188,28 @@ export default function ReviewManagement({ shopId, shopName }: ReviewManagementP
         </Card>
       ) : (
         <div className="space-y-4">
+          {/* Render User's Review First */}
+          {myReview && (
+            <Card className="p-6 bg-gold/5 border-gold/20">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="font-bold text-gold">Your Review</h4>
+                  {renderStars(myReview.rating)}
+                </div>
+                <span className="text-xs text-cream/50">
+                  {new Date(myReview.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-cream/80">{myReview.comment}</p>
+            </Card>
+          )}
+
+          {/* Render Other Reviews */}
           {(myReview ? reviews.filter(r => r.id !== myReview.id) : reviews).map((review) => (
             <Card key={review.id} className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h4 className="font-bold text-cream">{review.user?.full_name || "Anonymous"}</h4>
+                  <h4 className="font-bold text-cream">{review.customer_name || review.user?.full_name || "Anonymous"}</h4>
                   {renderStars(review.rating)}
                 </div>
                 <span className="text-xs text-cream/50">

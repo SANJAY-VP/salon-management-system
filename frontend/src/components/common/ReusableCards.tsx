@@ -174,101 +174,82 @@ export function BookingCard({
 
   return (
     <Card
-      className="group p-4 md:p-5 rounded-[20px] md:rounded-[24px] relative overflow-hidden transition-all duration-500 hover:border-gold/20 bg-white/[0.02] border-white/5"
+      className="group p-5 md:p-6 rounded-[24px] relative overflow-hidden transition-all duration-300 hover:border-gold/20 bg-surface border border-white/5 shadow-lg"
       onClick={onClick}
     >
-      <div className="absolute top-0 right-0 w-48 h-48 bg-gold/5 blur-[80px] rounded-full -mr-24 -mt-24" />
-
-      <div className="relative z-10">
-        <div className="flex justify-between items-start gap-3 mb-3 md:mb-4 pb-3 md:pb-4 border-b border-white/5">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold shadow-md">
-              <Icon icon="scissors" size={18} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-0.5">
-                #{booking.booking_code || `REF-${booking.id}`}
-              </p>
-              <h3 className="text-sm md:text-base font-bold text-white font-serif tracking-tight truncate italic">
-                {serviceName}
-              </h3>
-              <p className="text-[10px] font-bold text-gold/80 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
-                <Icon icon="store" size={10} />
-                {metaMode === "customer"
-                  ? booking.shop_name || shopName
-                  : booking.customer_name || "Guest"}
-              </p>
-              {metaMode === "barber" && booking.barber_name && (
-                <p className="text-[10px] font-bold text-white/45 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
-                  <Icon icon="profile" size={10} />
-                  {booking.barber_name}
-                </p>
-              )}
-              {booking.customer_phone && (
-                <p className="text-[10px] font-bold text-white/50 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
-                  <Icon icon="phone" size={10} />
-                  {booking.customer_phone}
-                </p>
-              )}
-            </div>
+      <div className="flex justify-between items-start mb-4 pb-4 border-b border-white/5 gap-4">
+        <div className="flex gap-4">
+          <div className="w-12 h-12 rounded-full bg-gold/10 text-gold flex items-center justify-center shrink-0">
+            <Icon icon="scissors" size={20} />
           </div>
-          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <span className="text-lg md:text-xl font-black text-white font-serif italic tracking-tighter">
-              ₹{displayPrice}
-            </span>
-            <span
-              className={`text-[9px] font-black px-2 md:px-3 py-0.5 md:py-1 rounded-full border uppercase tracking-widest ${
-                STATUS_STYLES[booking.status] || STATUS_STYLES.pending
-              }`}
-            >
-              {booking.status}
-            </span>
+          <div>
+            <h3 className="text-base font-bold text-white mb-1 truncate">
+              {serviceName}
+            </h3>
+            <p className="text-sm text-white/60 mb-1 flex items-center gap-1">
+               <Icon icon="store" size={12} />
+               {metaMode === "customer" ? booking.shop_name || shopName : booking.customer_name || "Guest"}
+            </p>
+            {metaMode === "barber" && booking.barber_name && (
+              <p className="text-sm text-white/40 flex items-center gap-1">
+                 <Icon icon="profile" size={12} />
+                 {booking.barber_name}
+              </p>
+            )}
+            {booking.customer_phone && (
+              <p className="text-sm text-white/40 flex items-center gap-1 mt-1">
+                 <Icon icon="phone" size={12} />
+                 {booking.customer_phone}
+              </p>
+            )}
           </div>
         </div>
+        <div className="text-right shrink-0">
+          <div className="text-lg font-bold text-white mb-2">₹{displayPrice}</div>
+          <span className={`text-xs font-medium px-3 py-1 rounded-full border ${STATUS_STYLES[booking.status] || STATUS_STYLES.pending}`}>
+            {booking.status}
+          </span>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-4 text-sm text-white/70">
+        <div className="flex items-center gap-1.5">
+          <Icon icon="calendar" size={14} className="text-gold/60" />
+          <span>{appointmentDate}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Icon icon="clock" size={14} className="text-gold/60" />
+          <span>{appointmentTime}</span>
+        </div>
+        {booking.notes?.toLowerCase().includes("home") && (
+          <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full ml-auto">
+            Home Service
+          </span>
+        )}
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3 px-0.5">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gold/60">
-              <Icon icon="calendar" size={10} />
-            </div>
-            <span className="text-[11px] md:text-xs font-bold text-white/80">{appointmentDate}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gold/60">
-              <Icon icon="clock" size={10} />
-            </div>
-            <span className="text-[11px] md:text-xs font-bold text-white/80">{appointmentTime}</span>
-          </div>
-          {booking.notes?.toLowerCase().includes("home") && (
-            <span className="text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Home
+      {(onInvoice || actions) && (
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+          {actions && <div className="flex-1">{actions}</div>}
+          {onInvoice && booking.status !== "cancelled" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onInvoice(booking);
+              }}
+              className="text-xs font-bold text-gold hover:text-white transition-colors flex items-center gap-1 px-3 py-1.5 bg-gold/10 rounded-lg hover:bg-gold/20"
+            >
+              <Icon icon="image" size={12} />
+              View Receipt
+            </button>
+          )}
+          {onInvoice && booking.status === "cancelled" && (
+            <span className="text-xs font-medium text-white/30 cursor-not-allowed">
+              Receipt unavailable
             </span>
           )}
         </div>
-
-        {(onInvoice || actions) && (
-          <div className="flex flex-wrap justify-between items-center gap-3 pt-3 md:pt-4 mt-3 md:mt-4 border-t border-white/5">
-            {actions && <div className="flex-1">{actions}</div>}
-            {onInvoice && booking.status !== "cancelled" && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onInvoice(booking);
-                }}
-                className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl bg-gold text-cocoa font-black uppercase tracking-widest text-[9px] flex items-center gap-1.5 hover:scale-105 transition-transform cursor-pointer"
-              >
-                <Icon icon="image" size={11} />
-                Receipt
-              </button>
-            )}
-            {onInvoice && booking.status === "cancelled" && (
-              <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/35 cursor-not-allowed">
-                Receipt unavailable
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+      )}
     </Card>
   );
 }

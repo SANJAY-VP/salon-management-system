@@ -333,8 +333,11 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <PageLayoutDesktop variant="customer">
-        <PageContainerDesktop maxWidth="xl" className="py-20 px-10">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+        <PageContainerDesktop maxWidth="xl" className="py-12 px-6 md:px-10">
+          <div className="mb-8 animate-fade-in">
+            <BackButton to="/customer/search" label="Back" />
+          </div>
+          <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
             <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gold/50 mb-8">
               <Icon icon="cart" size={32} />
             </div>
