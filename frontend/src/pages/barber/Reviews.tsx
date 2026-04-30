@@ -4,6 +4,7 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { Icon } from "../../components/common/Icon";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { shopService } from "../../services/shop.service";
 import { ReviewCard } from "../../components/common/ReusableCards";
 import { Shop } from "../../types";
@@ -50,8 +51,8 @@ export default function BarberReviews() {
   if (loading) {
      return (
         <PageLayoutDesktop variant="barber">
-           <PageContainerDesktop className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-gold text-xl animate-pulse font-serif tracking-widest uppercase">Syncing Client Logs</div>
+           <PageContainerDesktop className="flex items-center justify-center min-h-[60vh] px-4">
+              <LoadingSpinner size="lg" label="Loading reviews" />
            </PageContainerDesktop>
         </PageLayoutDesktop>
      );
@@ -84,7 +85,10 @@ export default function BarberReviews() {
                    <ReviewCard 
                       review={{
                         ...review,
-                        customerName: review.customer_name || "Discerning Client",
+                        customerName:
+                          review.customer_name ||
+                          review.customerName ||
+                          "Client",
                         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.id}`
                       }} 
                    />

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User } from '../types';
 import { authService } from '../services/auth.service';
+import { resolveAvatarImage } from '../config/images';
 
 interface AuthStore extends AuthState {
   login: (email: string, password: string) => Promise<User>;
@@ -33,13 +34,15 @@ function fetchGeolocation(): Promise<{ latitude: number; longitude: number } | n
 }
 
 function buildUser(userData: any, geo?: { latitude: number; longitude: number } | null): User {
+  const avatarKey = userData.avatar || undefined;
   return {
     id: userData.id.toString(),
     fullName: userData.full_name,
     name: userData.full_name || '',
     email: userData.email,
     phone: userData.phone || '',
-    avatar: userData.avatar || undefined,
+    avatar: avatarKey,
+    profileImage: resolveAvatarImage(avatarKey, userData.id),
     role: userData.role === 'barber_owner' ? 'barber' : 'customer',
     address: userData.address || '',
     city: userData.city || '',

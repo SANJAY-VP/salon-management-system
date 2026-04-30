@@ -68,6 +68,14 @@ def _enrich(booking, db: Session):
     booking.amount_paid = txn.final_amount if txn else None
     booking.payment_method = txn.payment_method.value if txn else None
 
+    # Barber assigned via slot (may be shop-level / null)
+    booking.barber_name = None
+    if slot and getattr(slot, "barber_id", None):
+        from app.models.barber import Barber as BarberModel
+
+        br = db.query(BarberModel).filter(BarberModel.id == slot.barber_id).first()
+        booking.barber_name = br.name if br else None
+
     return booking
 
 

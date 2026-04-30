@@ -11,6 +11,7 @@ import { useAuthStore } from "../../hooks/useAuthStore";
 import { TimeSlot } from "../../types";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 export default function BookingConfirmation() {
   const location = useLocation();
@@ -54,9 +55,8 @@ export default function BookingConfirmation() {
   if (loading) {
     return (
       <PageLayoutDesktop variant="customer">
-        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-14 h-14 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-6" />
-          <div className="text-gold/60 font-serif tracking-[0.3em] uppercase text-sm animate-pulse">Finalizing Details</div>
+        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <LoadingSpinner size="lg" label="Loading details" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );

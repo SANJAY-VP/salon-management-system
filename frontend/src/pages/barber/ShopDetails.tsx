@@ -17,11 +17,11 @@ import ShopCalendar from "../../components/barber/ShopCalendar";
 import { barberService } from "../../services/barber.service";
 import { Shop, TimeSlot, Booking, Review, Barber } from "../../types";
 import ShopEditModal from "../../components/barber/ShopEditModal";
-import InvoiceModal from "../../components/common/InvoiceModal";
 import ImageUploader from "../../components/common/ImageUploader";
 import Pagination from "../../components/common/Pagination";
 import { resolveShopImage } from "../../config/images";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 const PAGE_SIZE = 10;
 
@@ -46,7 +46,6 @@ export default function ShopDetails() {
   const [activeTab, setActiveTab] = useState("overview");
   const [expandedReview, setExpandedReview] = useState<string | number | null>(null);
   const [isEditingShop, setIsEditingShop] = useState(false);
-  const [selectedBookingForInvoice, setSelectedBookingForInvoice] = useState<Booking | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Per-tab pagination
@@ -81,13 +80,7 @@ export default function ShopDetails() {
 
       setSlots(slotsData);
       setBookings(bookingsData);
-      
-      // Map reviews to include customerName
-      const mappedReviews = reviewsData.map((r: any) => ({
-        ...r,
-        customerName: r.user?.full_name || "Guest",
-      }));
-      setReviews(mappedReviews);
+      setReviews(reviewsData as Review[]);
       
       setBarbers(barbersData);
     } catch (error) {
@@ -129,8 +122,7 @@ export default function ShopDetails() {
     return (
       <PageLayoutDesktop variant="barber">
         <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-14 h-14 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-6" />
-          <div className="text-gold/60 font-serif tracking-[0.3em] uppercase text-sm animate-pulse">Loading...</div>
+          <LoadingSpinner size="lg" label="Loading shop" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );
@@ -149,15 +141,27 @@ export default function ShopDetails() {
     );
   }
 
+  const bookingLineTotal = (b: Booking) =>
+    Number(b.amount_paid ?? b.service_price ?? 0);
+
   const revenue = bookings
-    .filter((b) => b.status === "completed")
-    .reduce((acc, b) => acc + ((b as any).service?.price || 0), 0);
+    .filter(
+      (b) =>
+        b.status === "completed" &&
+        (Number(b.amount_paid ?? 0) > 0 || Number(b.service_price ?? 0) > 0)
+    )
+    .reduce((acc, b) => acc + bookingLineTotal(b), 0);
+
+  const recentBookings = [...bookings].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   const availableSlots = slots.filter((s) => s.status === "available" || s.status === "AVAILABLE").length;
 
   return (
     <PageLayoutDesktop variant="barber">
-      <PageContainerDesktop maxWidth="2xl" className="px-8 py-12">
+      <PageContainerDesktop maxWidth="2xl" className="px-4 sm:px-6 md:px-8 py-8 md:py-12">
 
         {/* Back Button */}
         <div className="mb-10 animate-fade-in">
@@ -275,8 +279,8 @@ export default function ShopDetails() {
                     <p className="text-[11px] text-white/30 uppercase tracking-widest py-8 text-center">No bookings yet</p>
                   ) : (
                     <div className="space-y-4">
-                      {bookings.slice(0, 5).map((b: any) => (
-                        <BookingCard key={b.id} booking={b} />
+                      {recentBookings.slice(0, 5).map((b) => (
+                        <BookingCard key={b.id} booking={b} metaMode="barber" />
                       ))}
                     </div>
                   )}
@@ -390,8 +394,11 @@ group-hover:text-white transition-colors">
                 <div className="space-y-3">
                   {paginatedReviews.map((review) => {
                     const isExpanded = expandedReview === review.id;
-                    const name = review.customerName || "Anonymous";
-                    const date = review.createdAt;
+                    const name =
+                      review.customer_name ||
+                      review.customerName ||
+                      "Anonymous";
+                    const date = review.createdAt || (review as Review & { created_at?: string }).created_at;
 
                     return (
                       <div

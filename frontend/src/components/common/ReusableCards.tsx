@@ -13,11 +13,20 @@ interface ShopCardProps {
   onClick?: () => void;
 }
 
-export function ShopCard({ shop, onClick, variant = "customer" }: ShopCardProps & { variant?: "customer" | "barber" }) {
+export function ShopCard({
+  shop,
+  onClick,
+  variant = "customer",
+  exploreHighlight,
+}: ShopCardProps & { variant?: "customer" | "barber"; exploreHighlight?: boolean }) {
   const isOpen = shop.isOpen;
   return (
     <Card
-      className="group p-0 overflow-hidden border-white/[0.05] bg-surface/40 backdrop-blur-sm cursor-pointer hover:shadow-2xl hover:shadow-black/60 transition-all duration-700 rounded-[24px] md:rounded-[40px]"
+      className={`group p-0 overflow-hidden bg-surface/40 backdrop-blur-sm cursor-pointer hover:shadow-2xl hover:shadow-black/60 transition-all duration-700 rounded-[24px] md:rounded-[40px] ${
+        exploreHighlight
+          ? "border border-gold/35 shadow-[0_0_0_1px_rgba(212,175,55,0.12)] hover:border-gold/50"
+          : "border-white/[0.05]"
+      }`}
       onClick={onClick}
     >
       {/* Shop image — shorter on mobile */}
@@ -95,6 +104,8 @@ interface BookingCardProps {
   onClick?: () => void;
   onInvoice?: (booking: any) => void;
   actions?: ReactNode;
+  /** Customer profile: show salon name under service; barber dashboard: customer + optional barber */
+  metaMode?: "customer" | "barber";
 }
 
 const statusClasses = {
@@ -110,6 +121,7 @@ export function BookingCard({
   onClick,
   onInvoice,
   actions,
+  metaMode = "barber",
 }: BookingCardProps) {
   // Prefer enriched slot fields; fall back to created_at for legacy data
   const appointmentDate = booking.slot_date
@@ -143,12 +155,14 @@ export function BookingCard({
     (booking as any).shop?.name ||
     "Salon";
 
-  // amount_paid is the real payment; fall back to service_price
-  const displayPrice =
+  // amount_paid when checkout completed; otherwise show service/list price
+  const displayPrice = Number(
     booking.amount_paid ??
-    booking.service_price ??
-    (booking as any).service?.price ??
-    0;
+      booking.service_price ??
+      (booking as any).service?.price ??
+      (booking as any).service_price ??
+      0
+  );
 
   const STATUS_STYLES: Record<string, string> = {
     confirmed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -180,8 +194,16 @@ export function BookingCard({
               </h3>
               <p className="text-[10px] font-bold text-gold/80 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
                 <Icon icon="store" size={10} />
-                {booking.customer_name || "Guest"}
+                {metaMode === "customer"
+                  ? booking.shop_name || shopName
+                  : booking.customer_name || "Guest"}
               </p>
+              {metaMode === "barber" && booking.barber_name && (
+                <p className="text-[10px] font-bold text-white/45 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
+                  <Icon icon="profile" size={10} />
+                  {booking.barber_name}
+                </p>
+              )}
               {booking.customer_phone && (
                 <p className="text-[10px] font-bold text-white/50 flex items-center gap-1 mt-0.5 uppercase tracking-widest truncate">
                   <Icon icon="phone" size={10} />
@@ -227,7 +249,7 @@ export function BookingCard({
         {(onInvoice || actions) && (
           <div className="flex flex-wrap justify-between items-center gap-3 pt-3 md:pt-4 mt-3 md:mt-4 border-t border-white/5">
             {actions && <div className="flex-1">{actions}</div>}
-            {onInvoice && (
+            {onInvoice && booking.status !== "cancelled" && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -238,6 +260,11 @@ export function BookingCard({
                 <Icon icon="image" size={11} />
                 Receipt
               </button>
+            )}
+            {onInvoice && booking.status === "cancelled" && (
+              <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/35 cursor-not-allowed">
+                Receipt unavailable
+              </span>
             )}
           </div>
         )}
@@ -258,10 +285,10 @@ export function ServiceCard({ service, onAdd }: { service: Service, onAdd: () =>
         <div className="flex items-center gap-3 text-[10px] uppercase font-black tracking-widest text-cream/50 mb-4 md:mb-6">
             <div className="flex items-center gap-1.5">
                <Icon icon="clock" size={12} className="text-gold/50" />
-               {service.durationMinutes} MINS
+               {service.duration_minutes} mins
             </div>
             <div className="w-1 h-1 bg-white/10 rounded-full" />
-            <span className="hidden sm:inline">PREMIUM CARE</span>
+            {/* <span className="hidden sm:inline">PREMIUM CARE</span> */}
         </div>
         {service.description && (
           <p className="text-xs md:text-sm text-cream/50 leading-relaxed font-medium mb-4 md:mb-8 border-l-2 border-gold/20 pl-4 line-clamp-2">

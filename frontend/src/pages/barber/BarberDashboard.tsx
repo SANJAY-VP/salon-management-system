@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PageLayoutDesktop, PageContainerDesktop } from "../../components/common/Header";
 import Button from "../../components/common/Button";
 import { Icon } from "../../components/common/Icon";
 import { Modal } from "../../components/common/Modal";
 import Input from "../../components/common/Input";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { useAuthStore } from "../../hooks/useAuthStore";
 import { shopService, ShopCreate } from "../../services/shop.service";
 import { Shop } from "../../types";
@@ -13,6 +14,16 @@ import Pagination from "../../components/common/Pagination";
 import toast from "react-hot-toast";
 
 const PAGE_SIZE = 10;
+
+/** Rejects (0,0), out-of-range, and non-finite values — matches real map coordinates */
+function hasValidShopCoordinates(lat: number, lng: number): boolean {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat === 0 && lng === 0) return false;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false;
+  return true;
+}
+
+type GeoPromptState = "idle" | "loading" | "ok" | "denied" | "needs_manual";
 
 const EMPTY_FORM: ShopCreate = {
   name: "",
@@ -38,6 +49,7 @@ export default function BarberDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState<ShopCreate>(EMPTY_FORM);
+  const [geoPrompt, setGeoPrompt] = useState<GeoPromptState>("idle");
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(shops.length / PAGE_SIZE);
   const paginatedShops = shops.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -72,12 +84,63 @@ export default function BarberDashboard() {
     fetchDashboardData();
   }, []);
 
+  const requestSalonLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGeoPrompt("needs_manual");
+      toast.error("Geolocation is not supported in this browser. Enter coordinates manually.");
+      return;
+    }
+    setGeoPrompt("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }));
+        setGeoPrompt("ok");
+        toast.success("Location captured. You can adjust coordinates if needed.");
+      },
+      (err) => {
+        if (err.code === 1) {
+          setGeoPrompt("denied");
+          toast.error("Location access is required to register a salon.");
+        } else {
+          setGeoPrompt("needs_manual");
+          toast.error(
+            "Could not detect your position. Allow location when prompted, or enter latitude and longitude manually."
+          );
+        }
+      },
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!showAddModal) {
+      setGeoPrompt("idle");
+      return;
+    }
+    requestSalonLocation();
+  }, [showAddModal, requestSalonLocation]);
+
   const handleAddShop = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!formData.latitude || !formData.longitude) {
-      toast.error("Please enter valid coordinates (latitude & longitude)");
+    if (geoPrompt === "denied") {
+      toast.error(
+        "Enable location permission for this site in your browser settings, then try again."
+      );
+      return;
+    }
+    if (geoPrompt === "loading") {
+      toast.error("Please wait for location, or fix coordinates below.");
+      return;
+    }
+    if (!hasValidShopCoordinates(formData.latitude, formData.longitude)) {
+      toast.error(
+        "Enter valid map coordinates (not 0,0). Use “Use my location” or type latitude and longitude."
+      );
       return;
     }
 
@@ -88,6 +151,7 @@ export default function BarberDashboard() {
       setShops((prev) => [...prev, newShop]);
       setShowAddModal(false);
       setFormData(EMPTY_FORM);
+      setGeoPrompt("idle");
       toast.success("Salon created successfully!", { id: toastId });
     } catch (error: any) {
       const msg =
@@ -105,12 +169,9 @@ export default function BarberDashboard() {
 
   return (
     <PageLayoutDesktop variant="barber">
-      <PageContainerDesktop maxWidth="2xl" className="px-10 py-12">
+      <PageContainerDesktop maxWidth="2xl" className="px-4 sm:px-8 md:px-10 py-8 md:py-12">
         {loading ? (
-          <div className="py-40 text-center">
-            <div className="inline-block w-12 h-12 border-2 border-gold/10 border-t-gold rounded-full animate-spin mb-10" />
-            <p className="text-gold/50 font-bold text-[11px] tracking-widest uppercase animate-pulse">Fetching Salon Data</p>
-          </div>
+          <LoadingSpinner className="py-40 min-h-[40vh]" label="Loading salons" />
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-10 animate-fade-up">
@@ -126,7 +187,11 @@ export default function BarberDashboard() {
               {/* Add Salon Card — always last */}
               <button
                 type="button"
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setFormData(EMPTY_FORM);
+                  setGeoPrompt("idle");
+                  setShowAddModal(true);
+                }}
                 className="group relative h-full min-h-[400px] border-2 border-dashed border-white/5 hover:border-gold/30 bg-white/[0.01] hover:bg-gold/[0.02] rounded-[40px] transition-all duration-700 flex flex-col items-center justify-center gap-8 cursor-pointer overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.03),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -156,8 +221,59 @@ export default function BarberDashboard() {
         )}
 
         {/* Add Shop Modal */}
-        <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Register New Salon">
+        <Modal
+          isOpen={showAddModal}
+          onClose={() => {
+            setShowAddModal(false);
+            setFormData(EMPTY_FORM);
+            setGeoPrompt("idle");
+          }}
+          title="Register New Salon"
+        >
           <form onSubmit={handleAddShop} className="space-y-5 pt-4">
+            <div
+              className={`rounded-xl border px-4 py-3 text-sm ${
+                geoPrompt === "denied"
+                  ? "border-red-500/40 bg-red-500/10 text-red-200"
+                  : geoPrompt === "loading"
+                    ? "border-gold/30 bg-gold/5 text-white/70"
+                    : geoPrompt === "ok"
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                      : "border-white/10 bg-white/[0.03] text-white/60"
+              }`}
+            >
+              {geoPrompt === "loading" && (
+                <div className="flex justify-center py-1">
+                  <LoadingSpinner size="sm" label="Requesting your location" />
+                </div>
+              )}
+              {geoPrompt === "denied" && (
+                <span>
+                  Location access is blocked. Allow location for this site to register a salon (browser
+                  address bar → site settings).
+                </span>
+              )}
+              {geoPrompt === "ok" && <span>Location captured. Fine-tune coordinates below if needed.</span>}
+              {geoPrompt === "needs_manual" && (
+                <span>
+                  GPS unavailable. Enter the salon&apos;s latitude and longitude (from Google Maps pin).
+                </span>
+              )}
+              {geoPrompt === "idle" && <span>Preparing location…</span>}
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="!rounded-xl text-[10px] font-black uppercase tracking-widest"
+                onClick={() => requestSalonLocation()}
+                disabled={geoPrompt === "loading"}
+              >
+                Use my location
+              </Button>
+            </div>
             <Input
               label="Salon Name *"
               value={formData.name}
@@ -226,7 +342,14 @@ export default function BarberDashboard() {
                 label="Latitude *"
                 type="number"
                 value={formData.latitude}
-                onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const n = parseFloat(v);
+                  setFormData({
+                    ...formData,
+                    latitude: v === "" || Number.isNaN(n) ? 0 : n,
+                  });
+                }}
                 placeholder="e.g. 19.0760"
                 step="any"
                 required
@@ -235,7 +358,14 @@ export default function BarberDashboard() {
                 label="Longitude *"
                 type="number"
                 value={formData.longitude}
-                onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const n = parseFloat(v);
+                  setFormData({
+                    ...formData,
+                    longitude: v === "" || Number.isNaN(n) ? 0 : n,
+                  });
+                }}
                 placeholder="e.g. 72.8777"
                 step="any"
                 required
@@ -285,7 +415,11 @@ export default function BarberDashboard() {
                 type="button"
                 variant="secondary"
                 fullWidth
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setFormData(EMPTY_FORM);
+                  setGeoPrompt("idle");
+                }}
                 className="py-4 !rounded-2xl uppercase tracking-[0.3em] text-[10px] font-black"
               >
                 Cancel
@@ -294,7 +428,12 @@ export default function BarberDashboard() {
                 type="submit"
                 variant="primary"
                 fullWidth
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  geoPrompt === "loading" ||
+                  geoPrompt === "denied" ||
+                  !hasValidShopCoordinates(formData.latitude, formData.longitude)
+                }
                 className="py-4 !rounded-2xl uppercase tracking-[0.3em] text-[10px] font-black shadow-2xl shadow-gold/20"
               >
                 {submitting ? "Creating..." : "Create Salon"}

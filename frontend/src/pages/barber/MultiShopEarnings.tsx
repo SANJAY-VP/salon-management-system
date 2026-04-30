@@ -6,6 +6,7 @@ import { Icon } from "../../components/common/Icon";
 import { StatCard } from "../../components/common/StatCard";
 import { shopService } from "../../services/shop.service";
 import { Shop } from "../../types";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 type EarningsPeriod = 'daily' | 'monthly' | 'yearly';
 
@@ -79,8 +80,8 @@ export default function MultiShopEarnings() {
   if (loading) {
     return (
       <PageLayoutDesktop variant="barber">
-        <PageContainerDesktop className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-gold text-xl animate-pulse font-serif tracking-widest uppercase">Calculating Dividends</div>
+        <PageContainerDesktop className="flex items-center justify-center min-h-[60vh] px-4">
+          <LoadingSpinner size="lg" label="Loading earnings" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );

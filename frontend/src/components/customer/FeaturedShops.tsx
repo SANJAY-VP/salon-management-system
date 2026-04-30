@@ -5,6 +5,7 @@ import Button from "../common/Button";
 import { shopService } from "../../services/shop.service";
 import { Shop } from "../../types";
 import { useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 
 export default function FeaturedShops() {
   const [featuredShops, setFeaturedShops] = useState<Shop[]>([]);
@@ -32,8 +33,8 @@ export default function FeaturedShops() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="text-gold text-xl animate-pulse">Loading featured shops...</div>
+      <div className="flex justify-center items-center py-20 min-h-[200px]">
+        <LoadingSpinner size="lg" label="Loading featured salons" />
       </div>
     );
   }

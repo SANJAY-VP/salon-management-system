@@ -5,6 +5,7 @@ import { Modal, ConfirmDialog } from "../common/Modal";
 import { Icon } from "../common/Icon";
 import { reviewService, ReviewResponse, ReviewCreate, ReviewUpdate } from "../../services/review.service";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 
 interface ReviewManagementProps {
   shopId: string | number;
@@ -144,9 +145,8 @@ export default function ReviewManagement({ shopId, shopName }: ReviewManagementP
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-10 h-10 border-3 border-gold/20 border-t-gold rounded-full animate-spin mb-4" />
-        <div className="text-gold/60 text-sm font-medium animate-pulse">Loading reviews...</div>
+      <div className="flex flex-col items-center justify-center py-20 min-h-[200px]">
+        <LoadingSpinner label="Loading reviews" />
       </div>
     );
   }

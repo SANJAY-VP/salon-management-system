@@ -13,6 +13,7 @@ import Pagination from "../../components/common/Pagination";
 import { resolveShopImage } from "../../config/images";
 import { Service } from "../../types";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import BackButton from "../../components/common/BackButton";
 
 const PAGE_SIZE = 10;
@@ -50,7 +51,7 @@ function ServicePickerModal({ isOpen, services, isHomeService, onSelect, onClose
                 <p className="text-white font-bold text-sm group-hover:text-gold transition-colors">{svc.name}</p>
                 <p className="text-white/40 text-xs mt-1 flex items-center gap-2">
                   <Icon icon="clock" size={10} className="text-gold/50" />
-                  {svc.durationMinutes} mins
+                  {svc.duration_minutes} mins
                   {svc.description && (
                     <span className="hidden sm:inline truncate max-w-[180px]">· {svc.description}</span>
                   )}
@@ -143,7 +144,7 @@ export default function CustomerShopDetails() {
       serviceId: service.id.toString(),
       serviceName: service.name,
       price: service.price,
-      duration: service.durationMinutes,
+      duration: service.duration_minutes,
       shopImage: resolveShopImage(selectedShop.images || selectedShop.shopImage),
       barberId: pickerState.barberId,
       isHomeService: pickerState.isHome,
@@ -153,9 +154,8 @@ export default function CustomerShopDetails() {
   if (loading && !selectedShop) {
     return (
       <PageLayoutDesktop variant="customer">
-        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-16 h-16 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-6" />
-          <div className="text-gold font-serif tracking-[0.3em] uppercase text-sm animate-pulse">Loading...</div>
+        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <LoadingSpinner size="lg" label="Loading salon" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );
@@ -248,7 +248,7 @@ export default function CustomerShopDetails() {
                         serviceId: service.id.toString(),
                         serviceName: service.name,
                         price: service.price,
-                        duration: service.durationMinutes,
+                        duration: service.duration_minutes,
                         shopImage: resolveShopImage(selectedShop.images || selectedShop.shopImage),
                       });
                     }}

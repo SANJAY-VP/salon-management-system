@@ -23,7 +23,7 @@ export const ProfileLayout = ({
 }: ProfileLayoutProps) => {
   return (
     <PageLayoutDesktop variant={variant}>
-      <PageContainerDesktop maxWidth="xl" className="px-8 py-4">
+      <PageContainerDesktop maxWidth="xl" className="px-4 sm:px-6 md:px-8 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-12 mb-32">
           {/* LEFT SIDEBAR */}
           <ProfileSidebar

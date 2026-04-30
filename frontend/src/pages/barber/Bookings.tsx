@@ -9,6 +9,7 @@ import { bookingService } from "../../services/booking.service";
 import { shopService } from "../../services/shop.service";
 import { Booking } from "../../types";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 export default function BarberBookings() {
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
@@ -76,9 +77,8 @@ export default function BarberBookings() {
   if (loading) {
     return (
       <PageLayoutDesktop variant="barber">
-        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-14 h-14 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-6" />
-          <div className="text-gold/60 font-serif tracking-[0.3em] uppercase text-sm animate-pulse">Loading Bookings</div>
+        <PageContainerDesktop className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <LoadingSpinner size="lg" label="Loading bookings" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );
@@ -119,6 +119,9 @@ export default function BarberBookings() {
                    </div>
                    <div>
                       <h3 className="text-2xl font-bold font-serif text-white tracking-tighter uppercase mb-1">{booking.customer_name}</h3>
+                      <p className="text-lg font-serif text-gold mb-2">
+                        ₹{Number(booking.amount_paid ?? booking.service_price ?? 0).toLocaleString()}
+                      </p>
                       <div className="flex items-center gap-4">
                          <span className="text-[10px] font-black text-gold/60 uppercase tracking-widest">Code: {booking.booking_code}</span>
                          <span className="w-1 h-1 rounded-full bg-white/10" />

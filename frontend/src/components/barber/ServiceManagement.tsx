@@ -12,6 +12,7 @@ import {
   ServiceCategory,
 } from "../../services/service.service";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 
 interface ServiceManagementProps {
   shopId: string | number;
@@ -233,9 +234,8 @@ export default function ServiceManagement({ shopId }: ServiceManagementProps) {
 
   if (loading && services.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-10 h-10 border-3 border-gold/20 border-t-gold rounded-full animate-spin mb-4" />
-        <div className="text-gold/60 text-sm font-medium animate-pulse">Loading services...</div>
+      <div className="flex flex-col items-center justify-center py-20 min-h-[200px]">
+        <LoadingSpinner label="Loading services" />
       </div>
     );
   }

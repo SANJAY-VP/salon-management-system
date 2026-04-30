@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ShopCard, EmptyState } from "../../components/common/ReusableCards";
 import Filter from "../../components/common/Filter";
 import Pagination from "../../components/common/Pagination";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { SearchFilters } from "../../types";
 
 const PAGE_SIZE = 10;
@@ -56,7 +57,7 @@ export default function Search() {
 
   return (
     <PageLayoutDesktop variant="customer">
-      <PageContainerDesktop maxWidth="2xl" className="py-12">
+      <PageContainerDesktop maxWidth="2xl" className="py-8 sm:py-12 px-4 sm:px-6 md:px-8">
         {/* Compressed Global Search Interface */}
         <div className="mb-12 flex justify-center animate-fade-up">
           <div className="relative group p-0.5 rounded-2xl bg-white/[0.03] border border-white/5 shadow-lg transition-all duration-500 hover:border-white/10 w-full max-w-lg">
@@ -122,10 +123,7 @@ export default function Search() {
         </div>
 
         {loading ? (
-          <div className="py-24 md:py-32 text-center">
-            <div className="inline-block w-12 h-12 border-2 border-gold/10 border-t-gold rounded-full animate-spin mb-8 shadow-2xl shadow-gold/20" />
-            <p className="text-gold/30 font-black text-[10px] tracking-widest uppercase animate-pulse">Searching...</p>
-          </div>
+          <LoadingSpinner className="py-24 md:py-32 min-h-[30vh]" label="Searching salons" />
         ) : filteredShops.length > 0 ? (
           <div className="mb-12 md:mb-32">
             <Grid cols={3} gap="md">
@@ -133,6 +131,7 @@ export default function Search() {
                 <div key={shop.id} className="animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
                   <ShopCard
                     shop={shop}
+                    exploreHighlight
                     onClick={() => navigate(`/customer/shop/${shop.id}`)}
                   />
                 </div>

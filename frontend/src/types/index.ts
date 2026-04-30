@@ -9,6 +9,7 @@ export interface User {
   role: "customer" | "barber";
   /** Profile photo URL (Cloudinary or API /uploads); mirrors backend `avatar` */
   avatar?: string;
+  /** Resolved URL for sidebar / cards (optional convenience) */
   profileImage?: string;
   address?: string;
   city?: string;
@@ -74,7 +75,7 @@ export interface Service {
   id: string | number;
   shopId: string | number;
   name: string;
-  durationMinutes: number;
+  duration_minutes: number;
   price: number;
   description?: string;
   category: string;
@@ -119,6 +120,8 @@ export interface Booking {
   shop_name?: string;
   amount_paid?: number;
   payment_method?: string;
+  /** From enriched booking — barber tied to the slot */
+  barber_name?: string;
 
   // Nested relations (legacy — only set when explicitly fetched)
   shop?: Shop;
@@ -136,6 +139,8 @@ export interface Review {
   title?: string;
   comment?: string;
   createdAt: string;
+  /** API snake_case */
+  customer_name?: string;
   customerName?: string;
   customerImage?: string;
   isActive?: boolean;

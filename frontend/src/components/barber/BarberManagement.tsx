@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 import { Barber } from "../../types";
 import React from "react";
 import { serviceService, ServiceResponse } from "../../services/service.service";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 
 interface BarberManagementProps {
   shopId: string | number;
@@ -199,8 +200,8 @@ export default function BarberManagement({ shopId }: BarberManagementProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="text-gold text-xl animate-pulse">Loading barbers...</div>
+      <div className="flex justify-center items-center py-20 min-h-[200px]">
+        <LoadingSpinner size="lg" label="Loading barbers" />
       </div>
     );
   }

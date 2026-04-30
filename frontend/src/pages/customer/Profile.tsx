@@ -9,11 +9,13 @@ import { ConfirmDialog } from "../../components/common/Modal";
 import { useAuthStore } from "../../hooks/useAuthStore";
 import { bookingService } from "../../services/booking.service";
 import { Booking } from "../../types";
+import { resolveAvatarImage } from "../../config/images";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import InvoiceModal from "../../components/common/InvoiceModal";
 import Pagination from "../../components/common/Pagination";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 const PAGE_SIZE = 10;
 
@@ -34,7 +36,7 @@ export default function Profile() {
   
   const [selectedBookingForInvoice, setSelectedBookingForInvoice] = useState<Booking | null>(null);
   const [bookingPage, setBookingPage] = useState(1);
-  const [cancelTarget, setCancelTarget] = useState<string | number | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -42,7 +44,7 @@ export default function Profile() {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        profileImage: user.profileImage || "",
+        profileImage: user.profileImage || resolveAvatarImage(user.avatar, user.id),
       });
     }
   }, [user]);
@@ -103,7 +105,9 @@ export default function Profile() {
   const bookingCounts = {
     all: bookings.length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
+    completed: bookings.filter(
+      (b) => b.status === "completed" && Number(b.amount_paid ?? 0) > 0
+    ).length,
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
@@ -165,9 +169,7 @@ export default function Profile() {
             </h3>
 
             {loadingBookings ? (
-              <div className="py-12 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
-              </div>
+              <LoadingSpinner className="py-12" size="md" label="Loading bookings" />
             ) : filteredBookings.length === 0 ? (
               <div className="py-16 border border-dashed border-white/10 rounded-[32px] flex flex-col items-center">
                 <Icon icon="calendar" size={40} className="text-white/5 mb-4" />
@@ -192,11 +194,12 @@ export default function Profile() {
                     <BookingCard
                       key={b.id}
                       booking={b}
+                      metaMode="customer"
                       onInvoice={(booking) => setSelectedBookingForInvoice(booking)}
                       actions={
                         (b.status === "pending" || b.status === "confirmed") && (
                           <button
-                            onClick={() => setCancelTarget(b.id)}
+                            onClick={() => setCancelTarget(b)}
                             className="px-4 py-2 rounded-xl bg-red-500/5 border border-red-500/20 text-[9px] font-black text-red-400 hover:bg-red-500 hover:text-white uppercase tracking-widest transition-all shadow-lg cursor-pointer"
                           >
                             Cancel
@@ -227,13 +230,27 @@ export default function Profile() {
 
       <ConfirmDialog
         isOpen={cancelTarget !== null}
-        title="Cancel Booking"
-        message="Are you sure you want to cancel this booking? This action cannot be undone."
-        confirmText="Yes, Cancel"
-        cancelText="Keep Booking"
+        title={
+          cancelTarget?.status === "pending"
+            ? "Payment pending"
+            : "Cancel booking"
+        }
+        message={
+          cancelTarget?.status === "pending"
+            ? "This booking is waiting for checkout. Go to your cart to complete payment, or cancel to remove it."
+            : "Are you sure you want to cancel this booking? This action cannot be undone."
+        }
+        confirmText={cancelTarget?.status === "pending" ? "Cancel booking" : "Yes, Cancel"}
+        cancelText={cancelTarget?.status === "pending" ? "Go to cart" : "Keep booking"}
         isDangerous
-        onConfirm={() => { if (cancelTarget) handleCancelBooking(cancelTarget); setCancelTarget(null); }}
-        onCancel={() => setCancelTarget(null)}
+        onConfirm={() => {
+          if (cancelTarget) handleCancelBooking(cancelTarget.id);
+          setCancelTarget(null);
+        }}
+        onCancel={() => {
+          if (cancelTarget?.status === "pending") navigate("/customer/cart");
+          setCancelTarget(null);
+        }}
       />
     </ProfileLayout>
   );

@@ -96,10 +96,15 @@ def get_shop_reviews(
     )
     
     from app.models.user import User
+
     for r in reviews:
         u = db.query(User).filter(User.id == r.user_id).first()
-        r.customer_name = u.full_name if u else "Guest"
-        
+        if not u:
+            r.customer_name = "Guest"
+        else:
+            name = (u.full_name or "").strip()
+            r.customer_name = name or (u.email.split("@")[0] if u.email else "") or "Guest"
+
     return reviews
 
 

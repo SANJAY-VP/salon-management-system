@@ -8,6 +8,7 @@ import { shopService } from "../../services/shop.service";
 import { TimeSlot, Shop } from "../../types";
 import { DEFAULT_TIMES } from "../../data/slots";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 
 
@@ -126,10 +127,8 @@ const ManageSlots: React.FC = () => {
   if (!shop && loading) {
     return (
       <PageLayoutDesktop variant="barber">
-        <PageContainerDesktop className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-gold text-xl animate-pulse font-serif tracking-widest uppercase">
-            Loading...
-          </div>
+        <PageContainerDesktop className="flex items-center justify-center min-h-[60vh] px-4">
+          <LoadingSpinner size="lg" label="Loading" />
         </PageContainerDesktop>
       </PageLayoutDesktop>
     );
@@ -235,9 +234,7 @@ const ManageSlots: React.FC = () => {
           {/* Slot Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="py-20 text-center text-gold animate-pulse font-serif uppercase tracking-widest">
-                Loading slots...
-              </div>
+              <LoadingSpinner className="py-20 min-h-[200px]" label="Loading slots" />
             ) : slots.length === 0 ? (
               <Card className="py-40 border-dashed border-gold/20 bg-transparent flex flex-col items-center rounded-[40px]">
                 <Icon icon="calendar" size={64} className="text-gold/10 mb-8" />

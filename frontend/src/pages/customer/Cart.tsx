@@ -11,6 +11,7 @@ import { slotService } from "../../services/slot.service";
 import { bookingService } from "../../services/booking.service";
 import { TimeSlot } from "../../types";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -108,9 +109,15 @@ function SlotPicker({ item, reservedSlotIds, onSlotSelect, onClear }: SlotPicker
   const isAvailable = (s: TimeSlot) =>
     s.status === "available" || s.status === "AVAILABLE";
 
+  /** Only true occupied slots — not past "completed" cleanup states mis-labeled as busy */
   const isBooked = (s: TimeSlot) =>
-    s.status === "booked" || s.status === "BOOKED" ||
-    s.status === "completed" || s.status === "COMPLETED";
+    s.status === "booked" || s.status === "BOOKED";
+
+  const isPastOrClosed = (s: TimeSlot) =>
+    s.status === "completed" ||
+    s.status === "COMPLETED" ||
+    s.status === "cancelled" ||
+    s.status === "CANCELLED";
 
   const isInMyCart = (s: TimeSlot) =>
     reservedSlotIds.has(s.id.toString());
@@ -181,9 +188,7 @@ function SlotPicker({ item, reservedSlotIds, onSlotSelect, onClear }: SlotPicker
 
           {/* Slot grid */}
           {loading ? (
-            <div className="py-6 text-center">
-              <div className="w-6 h-6 border-2 border-gold/20 border-t-gold rounded-full animate-spin mx-auto" />
-            </div>
+            <LoadingSpinner className="py-6" size="sm" label="Loading slots" />
           ) : allSlots.length === 0 ? (
             <div className="py-6 text-center">
               <Icon icon="clock" size={24} className="text-white/10 mx-auto mb-3" />
@@ -200,6 +205,7 @@ function SlotPicker({ item, reservedSlotIds, onSlotSelect, onClear }: SlotPicker
                 const idStr = slot.id.toString();
                 const inMyCart = isInMyCart(slot);
                 const booked = isBooked(slot);
+                const pastClosed = isPastOrClosed(slot);
                 const available = isAvailable(slot) && !inMyCart;
 
                 let cls = "";
@@ -215,6 +221,9 @@ function SlotPicker({ item, reservedSlotIds, onSlotSelect, onClear }: SlotPicker
                   // Booked by someone else — show in yellow so users know it's taken
                   cls = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400/50 cursor-not-allowed";
                   title = "Booked";
+                } else if (pastClosed) {
+                  cls = "bg-white/5 border-white/10 text-white/25 cursor-not-allowed";
+                  title = "Unavailable";
                 } else if (available) {
                   cls = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white cursor-pointer";
                   disabled = false;

@@ -5,6 +5,7 @@ import { TimeSlot, Booking, Barber, Shop } from "../../types";
 import { Modal } from "../common/Modal";
 import { slotService } from "../../services/slot.service";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../common/LoadingSpinner";
 
 interface ShopCalendarProps {
   shopId: string | number;
@@ -247,12 +248,7 @@ export default function ShopCalendar({ shopId, slots, bookings, barbers, shop }:
         title={selectedDay ? selectedDay.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : ""}
       >
         {loadingDay ? (
-          <div className="py-16 flex flex-col items-center gap-6">
-            <div className="w-10 h-10 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest animate-pulse">
-              Loading Slots...
-            </p>
-          </div>
+          <LoadingSpinner className="py-16 min-h-[200px]" label="Loading slots" />
         ) : daySlots.length === 0 ? (
           <div className="py-12 text-center">
             <Icon icon="clock" size={40} className="text-white/10 mx-auto mb-6" />
@@ -293,28 +289,61 @@ export default function ShopCalendar({ shopId, slots, bookings, barbers, shop }:
                 const isBooked = slot.status === "booked" || slot.status === "BOOKED";
                 const booking = isBooked ? getBookingForSlot(slot.id) : undefined;
                 const barber = barbers.find((b) => b.id?.toString() === slot.barber_id?.toString());
+                const barberLabel = booking?.barber_name || barber?.name;
+                const paid =
+                  booking && Number(booking.amount_paid ?? 0) > 0;
 
                 return (
                   <div
                     key={slot.id}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                    className={`flex items-start justify-between gap-3 p-4 rounded-2xl border transition-all ${
                       isBooked
                         ? "bg-red-500/5 border-red-500/20"
                         : "bg-emerald-500/5 border-emerald-500/20"
                     }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isBooked ? "bg-red-500" : "bg-emerald-500"}`} />
-                      <div>
+                    <div className="flex items-start gap-4 min-w-0">
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${isBooked ? "bg-red-500" : "bg-emerald-500"}`} />
+                      <div className="min-w-0">
                         <p className="text-sm font-bold text-white">
                           {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                         </p>
                         {isBooked && booking && (
-                          <p className="text-[10px] font-black text-red-400/70 uppercase tracking-wider mt-0.5">
-                            {booking.customer_name}
-                          </p>
+                          <div className="mt-2 space-y-1 text-left">
+                            <p className="text-[11px] font-bold text-white/90">
+                              {booking.customer_name}
+                            </p>
+                            {booking.customer_phone && (
+                              <p className="text-[10px] text-white/45">{booking.customer_phone}</p>
+                            )}
+                            {booking.service_name && (
+                              <p className="text-[10px] text-gold/80 font-bold uppercase tracking-wider">
+                                {booking.service_name}
+                                {booking.service_price != null && (
+                                  <span className="text-white/50 font-medium normal-case">
+                                    {" "}
+                                    · ₹{Number(booking.service_price)}
+                                  </span>
+                                )}
+                              </p>
+                            )}
+                            {barberLabel && (
+                              <p className="text-[10px] text-white/40 uppercase tracking-wider">
+                                Barber: {barberLabel}
+                              </p>
+                            )}
+                            <p className="text-[9px] text-white/35">
+                              Payment: {paid ? "Paid" : "Pending"}{" "}
+                              {paid && booking.amount_paid != null && (
+                                <span className="text-emerald-400/90">(₹{Number(booking.amount_paid)})</span>
+                              )}
+                            </p>
+                            {booking.notes && (
+                              <p className="text-[9px] text-white/30 italic line-clamp-2">Note: {booking.notes}</p>
+                            )}
+                          </div>
                         )}
-                        {barber && (
+                        {!isBooked && barber && (
                           <p className="text-[10px] text-white/30 uppercase tracking-wider mt-0.5">
                             {barber.name}
                           </p>
@@ -322,7 +351,7 @@ export default function ShopCalendar({ shopId, slots, bookings, barbers, shop }:
                       </div>
                     </div>
                     <span
-                      className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                      className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border flex-shrink-0 ${
                         isBooked
                           ? "text-red-400 border-red-500/20 bg-red-500/10"
                           : "text-emerald-400 border-emerald-500/20 bg-emerald-500/10"

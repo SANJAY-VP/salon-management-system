@@ -17,6 +17,10 @@ function fmtTime(t?: string): string {
 }
 
 export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalProps) {
+  if (booking.status === "cancelled") {
+    return null;
+  }
+
   // ── Derived display values ──────────────────────────────────────────────
   const shopName =
     booking.shop_name || (booking as any).shop?.name || "Premium Salon";

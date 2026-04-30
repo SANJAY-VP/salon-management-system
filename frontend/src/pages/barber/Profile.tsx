@@ -7,6 +7,7 @@ import { useAuthStore } from "../../hooks/useAuthStore";
 import { shopService } from "../../services/shop.service";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { resolveAvatarImage } from "../../config/images";
 import toast from "react-hot-toast";
 
 export default function BarberProfile() {
@@ -55,6 +56,7 @@ export default function BarberProfile() {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
+        profileImage: user.profileImage || resolveAvatarImage(user.avatar, user.id),
       }));
     }
   }, [user]);

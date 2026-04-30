@@ -66,6 +66,9 @@ class BookingResponse(BaseModel):
     amount_paid: Optional[float] = None
     payment_method: Optional[str] = None
 
+    # ── Slot barber (who serves this appointment) ─────────────────────────
+    barber_name: Optional[str] = None
+
     class Config:
         from_attributes = True
 

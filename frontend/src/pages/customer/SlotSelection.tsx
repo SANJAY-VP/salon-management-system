@@ -7,6 +7,7 @@ import { slotService } from "../../services/slot.service";
 import { useShopStore } from "../../hooks/useShopStore";
 import { TimeSlot } from "../../types";
 import { useLocation, useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 export default function SlotSelection() {
   const location = useLocation();
@@ -52,7 +53,7 @@ export default function SlotSelection() {
 
   return (
     <PageLayoutDesktop variant="customer">
-      <PageContainerDesktop maxWidth="xl" className="px-8 py-12">
+      <PageContainerDesktop maxWidth="xl" className="px-4 sm:px-8 py-8 md:py-12">
         <PageHeader 
           title="Schedule Visit" 
           subtitle="Choose a time that aligns with your lifestyle. Our artisans await your presence." 
@@ -107,8 +108,7 @@ export default function SlotSelection() {
               </h2>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/10">
-                   <div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin mb-4" />
-                   <p className="text-xs text-white/50">Checking availability...</p>
+                  <LoadingSpinner size="md" label="Checking availability" />
                 </div>
               ) : slots.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">

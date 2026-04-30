@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { PageLayoutDesktop, PageContainerDesktop, PageHeader } from "../../components/common/Header";
 import { Icon } from "../../components/common/Icon";
 import { useAuthStore } from "../../hooks/useAuthStore";
 import { shopService } from "../../services/shop.service";
 import { slotService } from "../../services/slot.service";
 import { bookingService } from "../../services/booking.service";
-import { Shop, TimeSlot as APISlot } from "../../types";
+import { Shop, Booking } from "../../types";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { 
@@ -18,6 +18,7 @@ import {
   STATUS_TEXT 
 } from "../../data/constants";
 import { parseSlotMinutes, formatDateHeader } from "../../utils/time";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SlotStatus = "available" | "booked" | "break" | "closed";
@@ -30,7 +31,9 @@ interface DashboardSlot {
   booking?: {
     id: string | number;
     customerName: string;
+    customerPhone?: string;
     service: string;
+    barberName?: string;
     duration: string;
     paymentStatus: "Paid" | "Pending";
   };
@@ -78,6 +81,7 @@ export default function BarberOperations() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [shop, setShop] = useState<Shop | null>(null);
   const [slots, setSlots] = useState<DashboardSlot[]>([]);
+  const [shopBookings, setShopBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -105,13 +109,21 @@ export default function BarberOperations() {
           bookingService.getShopBookings(shop.id)
         ]);
 
+        setShopBookings(apiBookings);
+
         const daySlots = apiSlots.filter(s => s.date === dateStr);
         const dayBookings = apiBookings.filter(b => b.status !== 'cancelled');
 
         const mappedSlots: DashboardSlot[] = daySlots.map(s => {
           const booking = dayBookings.find(b => b.slot_id === s.id);
-          const status = booking ? 'booked' : (s.status.toLowerCase() as SlotStatus);
-          
+          const raw = String(s.status).toLowerCase();
+          const status: SlotStatus = booking
+            ? "booked"
+            : raw === "available"
+              ? "available"
+              : "closed";
+          const paid = Number(booking?.amount_paid ?? 0) > 0;
+
           return {
             id: s.id,
             time: (s.start_time || s.time || "").slice(0, 5),
@@ -119,9 +131,11 @@ export default function BarberOperations() {
             booking: booking ? {
               id: booking.id,
               customerName: booking.customer_name,
-              service: (booking as any).service?.name || "Premium Cut",
+              customerPhone: booking.customer_phone,
+              service: booking.service_name || (booking as any).service?.name || "Service",
+              barberName: booking.barber_name,
               duration: "45m",
-              paymentStatus: "Paid"
+              paymentStatus: paid ? "Paid" : "Pending"
             } : undefined
           };
         });
@@ -150,15 +164,27 @@ export default function BarberOperations() {
     return () => clearInterval(t);
   }, []);
 
-  const stats = {
-    bookings: slots.filter((s) => s.status === "booked").length,
-    free: slots.filter((s) => s.status === "available").length,
-    revenue: slots.filter(s => s.status === 'booked').length * 1200, 
-  };
+  const dateStrForStats = selectedDate.toISOString().split("T")[0];
+
+  const stats = useMemo(() => {
+    const dayBookings = shopBookings.filter((b) => {
+      const sd = (b.slot_date || "").split("T")[0];
+      return sd === dateStrForStats && b.status !== "cancelled";
+    });
+    const revenue = dayBookings.reduce(
+      (acc, b) => acc + Number(b.amount_paid ?? b.service_price ?? 0),
+      0
+    );
+    return {
+      bookings: slots.filter((s) => s.status === "booked").length,
+      free: slots.filter((s) => s.status === "available").length,
+      revenue,
+    };
+  }, [slots, shopBookings, dateStrForStats]);
 
   return (
     <PageLayoutDesktop variant="barber">
-      <PageContainerDesktop maxWidth="2xl" className="px-10 py-12">
+      <PageContainerDesktop maxWidth="2xl" className="px-4 sm:px-8 md:px-10 py-8 md:py-12">
         <div className="flex justify-between items-end mb-12">
            <PageHeader 
               title="Daily Operations" 
@@ -244,8 +270,8 @@ export default function BarberOperations() {
                           )}
 
                           {loading ? (
-                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="text-gold animate-pulse text-sm font-serif uppercase tracking-[0.3em]">Syncing Schedule</div>
+                             <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
+                                <LoadingSpinner label="Loading schedule" />
                              </div>
                           ) : (
                              slots.map((slot, idx) => {
@@ -269,13 +295,32 @@ export default function BarberOperations() {
                                                   {slot.status === 'booked' ? slot.booking?.customerName : slot.status === 'break' ? 'Personal Interlude' : 'Open Window'}
                                                </p>
                                                <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mt-0.5">
-                                                  {slot.time} {slot.status === 'booked' && `* ${slot.booking?.service}`}
+                                                  {slot.time}
+                                                  {slot.status === "booked" && slot.booking?.service && (
+                                                    <span className="block text-white/40 mt-1 normal-case tracking-normal font-bold">
+                                                      {slot.booking.service}
+                                                      {slot.booking.barberName && (
+                                                        <span className="block text-[9px] mt-0.5">
+                                                          Barber: {slot.booking.barberName}
+                                                        </span>
+                                                      )}
+                                                      {slot.booking.customerPhone && (
+                                                        <span className="block text-[9px] text-white/35 mt-0.5">
+                                                          {slot.booking.customerPhone}
+                                                        </span>
+                                                      )}
+                                                    </span>
+                                                  )}
                                                </p>
                                             </div>
                                          </div>
-                                         {slot.status === 'booked' && (
-                                            <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-                                               Paid
+                                         {slot.status === 'booked' && slot.booking && (
+                                            <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                              slot.booking.paymentStatus === "Paid"
+                                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                                            }`}>
+                                               {slot.booking.paymentStatus}
                                             </div>
                                          )}
                                       </div>
